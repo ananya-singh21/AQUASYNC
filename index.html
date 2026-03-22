@@ -1,0 +1,489 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AquaSync — Smart Water Management | Solapur</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --blue-dark: #0D1B2A;
+  --blue: #1A5276;
+  --blue-mid: #2E86C1;
+  --accent: #00D4FF;
+  --green: #00FF88;
+  --white: #FFFFFF;
+  --text: #E2EAF4;
+  --muted: #8FA8C0;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--blue-dark);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.bg-layer {
+  position: fixed; top:0; left:0; right:0; bottom:0;
+  background:
+    radial-gradient(ellipse at 20% 50%, rgba(26,82,118,0.4) 0%, transparent 60%),
+    radial-gradient(ellipse at 80% 20%, rgba(46,134,193,0.3) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 80%, rgba(0,212,255,0.1) 0%, transparent 50%);
+  z-index: 0;
+}
+
+.ripple {
+  position: fixed; border-radius: 50%;
+  border: 1px solid rgba(0,212,255,0.12);
+  animation: rippleAnim 8s infinite ease-out;
+  z-index: 0;
+}
+.ripple:nth-child(1){ width:400px; height:400px; top:5%; left:5%; animation-delay:0s; }
+.ripple:nth-child(2){ width:600px; height:600px; top:30%; right:5%; animation-delay:2.5s; }
+.ripple:nth-child(3){ width:250px; height:250px; bottom:10%; left:25%; animation-delay:5s; }
+@keyframes rippleAnim {
+  0%  { transform:scale(1); opacity:0.3; }
+  50% { transform:scale(1.25); opacity:0.08; }
+  100%{ transform:scale(1); opacity:0.3; }
+}
+
+.page {
+  position: relative; z-index: 1;
+  min-height: 100vh;
+  display: flex; flex-direction: column;
+}
+
+/* NAVBAR */
+.navbar {
+  display: flex; align-items: center;
+  justify-content: space-between;
+  padding: 20px 48px;
+}
+.nav-logo {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 28px; font-weight: 700;
+  color: var(--accent); letter-spacing: 0.05em;
+}
+.nav-logo span { color: white; }
+.nav-status {
+  display: flex; align-items: center; gap: 8px;
+  font-size: 12px; color: var(--muted);
+}
+.live-dot {
+  width: 8px; height: 8px;
+  background: var(--green); border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.3;} }
+
+/* HERO */
+.hero {
+  flex: 1;
+  display: flex; align-items: center;
+  justify-content: center;
+  padding: 32px 48px;
+  gap: 72px;
+}
+
+/* LEFT */
+.hero-left { flex: 1; max-width: 580px; }
+
+.hero-badge {
+  display: inline-flex; align-items: center; gap: 8px;
+  background: rgba(0,212,255,0.1);
+  border: 1px solid rgba(0,212,255,0.25);
+  border-radius: 20px; padding: 6px 16px;
+  font-size: 11px; font-weight: 600;
+  color: var(--accent); letter-spacing: 0.08em;
+  text-transform: uppercase; margin-bottom: 24px;
+}
+
+.hero-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 54px; font-weight: 700;
+  line-height: 1.1; color: white; margin-bottom: 20px;
+}
+.hero-title .hl { color: var(--accent); }
+
+.hero-sub {
+  font-size: 16px; color: var(--muted);
+  line-height: 1.75; margin-bottom: 10px; max-width: 480px;
+}
+.hero-sub-mr { font-size: 13px; color: var(--muted); margin-bottom: 36px; }
+
+.stats-row { display: flex; gap: 28px; margin-bottom: 40px; }
+.stat-item { text-align: center; }
+.stat-num {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 30px; font-weight: 700; color: var(--accent);
+}
+.stat-lbl { font-size: 11px; color: var(--muted); margin-top: 2px; }
+.stat-div { width:1px; background:rgba(255,255,255,0.1); align-self:stretch; }
+
+.cta-row { display: flex; gap: 14px; align-items: center; margin-bottom: 28px; }
+
+.btn-citizen {
+  padding: 14px 28px;
+  background: linear-gradient(135deg, #1A5276, #2E86C1);
+  color: white; border: none; border-radius: 10px;
+  font-size: 15px; font-weight: 700; cursor: pointer;
+  font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; gap: 8px;
+  text-decoration: none;
+  box-shadow: 0 4px 20px rgba(26,82,118,0.4);
+  transition: all 0.2s;
+}
+.btn-citizen:hover { transform:translateY(-2px); box-shadow:0 8px 28px rgba(26,82,118,0.5); }
+
+.btn-engineer {
+  padding: 14px 28px;
+  background: rgba(255,255,255,0.05);
+  color: white; border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 10px; font-size: 15px; font-weight: 600;
+  cursor: pointer; font-family: 'DM Sans', sans-serif;
+  display: flex; align-items: center; gap: 8px;
+  transition: all 0.2s;
+}
+.btn-engineer:hover { background:rgba(255,255,255,0.1); border-color:rgba(255,255,255,0.35); transform:translateY(-2px); }
+
+.chips { display: flex; gap: 10px; flex-wrap: wrap; }
+.chip {
+  display: flex; align-items: center; gap: 6px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid rgba(255,255,255,0.1);
+  border-radius: 20px; padding: 5px 12px;
+  font-size: 11px; color: var(--muted);
+}
+
+/* RIGHT CARD */
+.hero-right { flex-shrink: 0; width: 380px; }
+
+.choice-card {
+  background: rgba(15,22,41,0.75);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; padding: 28px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+}
+.choice-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 18px; font-weight: 700;
+  color: white; margin-bottom: 20px; text-align: center;
+}
+
+.choice-btn {
+  display: block; width: 100%;
+  border-radius: 10px; padding: 18px;
+  margin-bottom: 12px; cursor: pointer;
+  transition: all 0.2s; text-decoration: none;
+  border: 1px solid; text-align: left;
+}
+.choice-btn.citizen {
+  background: rgba(26,82,118,0.25);
+  border-color: rgba(46,134,193,0.3);
+}
+.choice-btn.citizen:hover { background: rgba(26,82,118,0.45); }
+.choice-btn.engineer {
+  background: rgba(0,212,255,0.07);
+  border-color: rgba(0,212,255,0.2);
+}
+.choice-btn.engineer:hover { background: rgba(0,212,255,0.15); }
+
+.choice-icon { font-size: 24px; margin-bottom: 8px; }
+.choice-name { font-size: 15px; font-weight: 700; color: white; margin-bottom: 4px; }
+.choice-desc { font-size: 11px; color: var(--muted); line-height: 1.5; }
+
+.choice-footer {
+  text-align: center; margin-top: 16px;
+  font-size: 11px; color: var(--muted);
+}
+
+/* LOGIN CARD */
+.login-card {
+  background: rgba(15,22,41,0.75);
+  border: 1px solid rgba(255,255,255,0.08);
+  border-radius: 16px; padding: 28px;
+  backdrop-filter: blur(20px);
+  box-shadow: 0 20px 60px rgba(0,0,0,0.4);
+  display: none;
+}
+.login-card.show { display:block; animation: fadeIn 0.3s ease; }
+@keyframes fadeIn {
+  from { opacity:0; transform:translateY(-8px); }
+  to   { opacity:1; transform:translateY(0); }
+}
+
+.login-head { margin-bottom: 20px; }
+.login-title {
+  font-family: 'Rajdhani', sans-serif;
+  font-size: 20px; font-weight: 700; color: white; margin-bottom: 4px;
+}
+.login-sub { font-size: 12px; color: var(--muted); }
+
+.login-hint {
+  background: rgba(0,212,255,0.07);
+  border: 1px solid rgba(0,212,255,0.15);
+  border-radius: 7px; padding: 10px 12px;
+  font-size: 11px; color: var(--muted);
+  margin-bottom: 18px; line-height: 1.7;
+}
+.login-hint strong { color: var(--accent); }
+
+.field { margin-bottom: 14px; }
+.field-label {
+  display: block; font-size: 11px; font-weight: 600;
+  color: var(--muted); margin-bottom: 6px;
+  letter-spacing: 0.06em; text-transform: uppercase;
+}
+.field-input {
+  width: 100%; padding: 11px 14px;
+  background: rgba(255,255,255,0.06);
+  border: 1px solid rgba(255,255,255,0.15);
+  border-radius: 8px; color: white;
+  font-size: 14px; font-family: 'DM Sans', sans-serif;
+  outline: none; transition: border-color 0.2s;
+}
+.field-input:focus { border-color: var(--accent); }
+.field-input::placeholder { color: rgba(255,255,255,0.25); }
+
+.login-btn {
+  width: 100%; padding: 13px;
+  background: linear-gradient(135deg, var(--blue), var(--blue-mid));
+  color: white; border: none; border-radius: 8px;
+  font-size: 14px; font-weight: 700; cursor: pointer;
+  font-family: 'DM Sans', sans-serif; transition: all 0.2s;
+}
+.login-btn:hover { opacity:0.9; transform:translateY(-1px); }
+
+.login-err {
+  display: none;
+  background: rgba(255,59,59,0.12);
+  border: 1px solid rgba(255,59,59,0.25);
+  border-radius: 6px; padding: 10px 12px;
+  font-size: 12px; color: #FF7070;
+  margin-top: 12px; text-align: center;
+}
+.login-err.show { display: block; }
+
+.back-link {
+  display: block; text-align: center;
+  margin-top: 16px; font-size: 12px;
+  color: var(--muted); cursor: pointer;
+}
+.back-link:hover { color: var(--accent); }
+
+/* BOTTOM */
+.bottom {
+  padding: 16px 48px;
+  border-top: 1px solid rgba(255,255,255,0.06);
+  display: flex; align-items: center;
+  justify-content: space-between;
+  font-size: 11px; color: var(--muted);
+}
+.bottom-links { display:flex; gap:20px; }
+.bottom-links span { cursor:pointer; transition:color 0.2s; }
+.bottom-links span:hover { color:var(--accent); }
+</style>
+</head>
+<body>
+
+<div class="bg-layer"></div>
+<div class="ripple"></div>
+<div class="ripple"></div>
+<div class="ripple"></div>
+
+<div class="page">
+
+  <!-- NAVBAR -->
+  <div class="navbar">
+    <div class="nav-logo">Aqua<span>Sync</span></div>
+    <div class="nav-status">
+      <div class="live-dot"></div>
+      System Online · Solapur Municipal Corporation
+    </div>
+  </div>
+
+  <!-- HERO -->
+  <div class="hero">
+
+    <!-- LEFT -->
+    <div class="hero-left">
+      <div class="hero-badge">
+        💧 SAMVED Hackathon 2026 · Team HydroLogic2.0
+      </div>
+
+      <div class="hero-title">
+        Smart Water for<br>
+        <span class="hl">Every Drop,</span><br>
+        Every Zone
+      </div>
+
+      <div class="hero-sub">
+        AquaSync is Solapur's intelligent water pressure management platform —
+        giving engineers real-time control and citizens full transparency over
+        their daily water supply.
+      </div>
+      <div class="hero-sub-mr">
+        सोलापूरच्या १० लाख नागरिकांसाठी स्मार्ट पाणी व्यवस्थापन प्रणाली
+      </div>
+
+      <div class="stats-row">
+        <div class="stat-item">
+          <div class="stat-num">10L+</div>
+          <div class="stat-lbl">Citizens Served</div>
+        </div>
+        <div class="stat-div"></div>
+        <div class="stat-item">
+          <div class="stat-num">3</div>
+          <div class="stat-lbl">Live Zones</div>
+        </div>
+        <div class="stat-div"></div>
+        <div class="stat-item">
+          <div class="stat-num">24x7</div>
+          <div class="stat-lbl">Monitoring</div>
+        </div>
+        <div class="stat-div"></div>
+        <div class="stat-item">
+          <div class="stat-num">2hr</div>
+          <div class="stat-lbl">ML Forecast</div>
+        </div>
+      </div>
+
+      <div class="cta-row">
+        <a href="citizen/index.html" class="btn-citizen">
+          👤 Enter as Citizen
+        </a>
+        <button class="btn-engineer" onclick="showLogin()">
+          🔧 SMC Engineer Login
+        </button>
+      </div>
+
+      <div class="chips">
+        <div class="chip">📊 Live Dashboard</div>
+        <div class="chip">🗺 GIS Heatmap</div>
+        <div class="chip">🤖 ML Prediction</div>
+        <div class="chip">🚨 Leak Detection</div>
+        <div class="chip">🌐 Marathi Support</div>
+      </div>
+    </div>
+
+    <!-- RIGHT -->
+    <div class="hero-right">
+
+      <!-- CHOICE CARD -->
+      <div class="choice-card" id="choiceCard">
+        <div class="choice-title">Who are you?</div>
+
+        <a href="citizen/index.html" class="choice-btn citizen">
+          <div class="choice-icon">👤</div>
+          <div class="choice-name">I am a Citizen</div>
+          <div class="choice-desc">
+            View your ward's water schedule, check live pressure and raise complaints.<br>
+            <span style="color:#5DADE2">नागरिक · पाणी वेळापत्रक · तक्रार करा</span>
+          </div>
+        </a>
+
+        <div class="choice-btn engineer" onclick="showLogin()">
+          <div class="choice-icon">🔧</div>
+          <div class="choice-name">I am an SMC Engineer</div>
+          <div class="choice-desc">
+            Access live GIS dashboard, ML predictions, leak alerts and controls.<br>
+            <span style="color:#00D4FF">SMC अभियंता · लाइव्ह डॅशबोर्ड · GIS नकाशा</span>
+          </div>
+        </div>
+
+        <div class="choice-footer">🔒 Engineer access requires SMC login credentials</div>
+      </div>
+
+      <!-- LOGIN CARD -->
+      <div class="login-card" id="loginCard">
+        <div class="login-head">
+          <div class="login-title">🔧 Engineer Login</div>
+          <div class="login-sub">Solapur Municipal Corporation · Authorized Staff Only</div>
+        </div>
+
+        <div class="login-hint">
+          <strong>Demo Credentials:</strong><br>
+          Username: <strong>smc_engineer</strong><br>
+          Password: <strong>aquasync2026</strong>
+        </div>
+
+        <div class="field">
+          <label class="field-label">Username</label>
+          <input class="field-input" type="text" id="loginUser"
+            placeholder="Enter SMC username" autocomplete="off"/>
+        </div>
+        <div class="field">
+          <label class="field-label">Password</label>
+          <input class="field-input" type="password" id="loginPass"
+            placeholder="Enter password"
+            onkeydown="if(event.key==='Enter')doLogin()"/>
+        </div>
+
+        <button class="login-btn" onclick="doLogin()">
+          🔐 Login to Engineer Dashboard
+        </button>
+
+        <div class="login-err" id="loginErr">
+          ❌ Invalid credentials. Please try again.
+        </div>
+
+        <span class="back-link" onclick="hideLogin()">← Back to selection</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- BOTTOM -->
+  <div class="bottom">
+    <div>AquaSync · Team HydroLogic2.0 · MIT Vishwaprayag University, Solapur · SAMVED 2026</div>
+    <div class="bottom-links">
+      <span onclick="location.href='citizen/index.html'">Citizen Portal</span>
+      <span onclick="showLogin()">Engineer Login</span>
+      <span>SAMVED 2026</span>
+    </div>
+  </div>
+
+</div>
+
+<script>
+const ENGINEER_USER = "smc_engineer";
+const ENGINEER_PASS = "aquasync2026";
+
+function showLogin() {
+  document.getElementById('choiceCard').style.display = 'none';
+  document.getElementById('loginCard').classList.add('show');
+  setTimeout(() => document.getElementById('loginUser').focus(), 100);
+}
+
+function hideLogin() {
+  document.getElementById('loginCard').classList.remove('show');
+  document.getElementById('choiceCard').style.display = 'block';
+  document.getElementById('loginErr').classList.remove('show');
+  document.getElementById('loginUser').value = '';
+  document.getElementById('loginPass').value = '';
+}
+
+function doLogin() {
+  const user = document.getElementById('loginUser').value.trim();
+  const pass = document.getElementById('loginPass').value.trim();
+
+  if (user === ENGINEER_USER && pass === ENGINEER_PASS) {
+    document.querySelector('.login-btn').textContent = '✅ Redirecting...';
+    setTimeout(() => { window.location.href = 'dashboard/index.html'; }, 600);
+  } else {
+    document.getElementById('loginErr').classList.add('show');
+    document.getElementById('loginPass').value = '';
+    document.getElementById('loginPass').focus();
+    setTimeout(() => document.getElementById('loginErr').classList.remove('show'), 3000);
+  }
+}
+</script>
+
+</body>
+</html>

@@ -1,0 +1,170 @@
+{
+  "w1": {
+    "name": "Hotgi Road",
+    "times": [
+      "2.00 to 4.00",
+      "6:00 AM \u2013 8:00 AM",
+      "6:00 AM \u2013 8:00 AM",
+      "6:00 AM \u2013 8:00 AM",
+      "6:00 AM \u2013 8:00 AM",
+      "6:00 AM \u2013 9:00 AM",
+      "6:00 AM \u2013 9:00 AM"
+    ],
+    "status": [
+      "warning",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal"
+    ]
+  },
+  "w2": {
+    "name": "Akkalkot Road",
+    "times": [
+      "7:00 AM \u2013 9:00 AM",
+      "7:00 AM \u2013 9:00 AM",
+      "7:00 AM \u2013 9:00 AM",
+      "7:00 AM \u2013 9:00 AM",
+      "7:00 AM \u2013 9:00 AM",
+      "7:00 AM \u2013 10:00 AM",
+      "7:00 AM \u2013 10:00 AM"
+    ],
+    "status": [
+      "normal",
+      "normal",
+      "warning",
+      "normal",
+      "normal",
+      "normal",
+      "normal"
+    ]
+  },
+  "w3": {
+    "name": "Vijapur Road",
+    "times": [
+      "5:30 AM \u2013 7:30 AM",
+      "5:30 AM \u2013 7:30 AM",
+      "5:30 AM \u2013 7:30 AM",
+      "5:30 AM \u2013 7:30 AM",
+      "5:30 AM \u2013 7:30 AM",
+      "5:30 AM \u2013 8:30 AM",
+      "5:30 AM \u2013 8:30 AM"
+    ],
+    "status": [
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal"
+    ]
+  },
+  "w4": {
+    "name": "Central Solapur",
+    "times": [
+      "6:00 AM \u2013 8:30 AM",
+      "6:00 AM \u2013 8:30 AM",
+      "6:00 AM \u2013 8:30 AM",
+      "3.00 to 4.00",
+      "6:00 AM \u2013 8:30 AM",
+      "6:00 AM \u2013 9:30 AM",
+      "6:00 AM \u2013 9:30 AM"
+    ],
+    "status": [
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal"
+    ]
+  },
+  "w5": {
+    "name": "Solapur Bazar",
+    "times": [
+      "6:30 AM \u2013 8:30 AM",
+      "3.00 to 4.00",
+      "No Supply",
+      "6:30 AM \u2013 8:30 AM",
+      "6:30 AM \u2013 8:30 AM",
+      "6:30 AM \u2013 9:30 AM",
+      "6:30 AM \u2013 9:30 AM"
+    ],
+    "status": [
+      "normal",
+      "normal",
+      "critical",
+      "normal",
+      "normal",
+      "normal",
+      "normal"
+    ]
+  },
+  "w6": {
+    "name": "Kegaon",
+    "times": [
+      "7:00 AM \u2013 9:00 AM",
+      "7:00 AM \u2013 9:00 AM",
+      "7:00 AM \u2013 9:00 AM",
+      "7:00 AM \u2013 9:00 AM",
+      "7:00 AM \u2013 9:00 AM",
+      "7:00 AM \u2013 10:00 AM",
+      "7:00 AM \u2013 10:00 AM"
+    ],
+    "status": [
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal"
+    ]
+  },
+  "w7": {
+    "name": "Mangalwar Peth",
+    "times": [
+      "6:00 AM \u2013 8:00 AM",
+      "6:00 AM \u2013 8:00 AM",
+      "6:00 AM \u2013 8:00 AM",
+      "Maintenance",
+      "6:00 AM \u2013 8:00 AM",
+      "6:00 AM \u2013 9:00 AM",
+      "6:00 AM \u2013 9:00 AM"
+    ],
+    "status": [
+      "normal",
+      "normal",
+      "normal",
+      "warning",
+      "normal",
+      "normal",
+      "normal"
+    ]
+  },
+  "w8": {
+    "name": "Siddheshwar",
+    "times": [
+      "5:00 AM \u2013 7:00 AM",
+      "5:00 AM \u2013 7:00 AM",
+      "5:00 AM \u2013 7:00 AM",
+      "5:00 AM \u2013 7:00 AM",
+      "5:00 AM \u2013 7:00 AM",
+      "5:00 AM \u2013 8:00 AM",
+      "5:00 AM \u2013 8:00 AM"
+    ],
+    "status": [
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal",
+      "normal"
+    ]
+  }
+}

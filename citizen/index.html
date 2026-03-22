@@ -1,0 +1,596 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>AquaSync — Citizen Portal | नागरिक पोर्टल</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+Devanagari:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600;700&display=swap');
+
+:root {
+  --bg: #F0F6FF;
+  --white: #FFFFFF;
+  --blue: #1A5276;
+  --blue-light: #2E86C1;
+  --blue-pale: #D6EAF8;
+  --green: #1E8449;
+  --green-light: #D5F5E3;
+  --red: #C0392B;
+  --red-light: #FADBD8;
+  --yellow: #D4AC0D;
+  --yellow-light: #FEF9E7;
+  --orange: #CA6F1E;
+  --orange-light: #FDEBD0;
+  --text: #1A1A2E;
+  --muted: #6B7A8D;
+  --border: #D5E8F3;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  font-family: 'DM Sans', 'Noto Sans Devanagari', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.header {
+  background: var(--blue);
+  color: white;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 64px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+}
+.logo-text { font-size: 22px; font-weight: 700; letter-spacing: 0.02em; }
+.logo-text span { color: #5DADE2; }
+.logo-sub { font-size: 11px; opacity: 0.7; margin-top: 2px; }
+.smc-badge { background:rgba(255,255,255,0.15); border:1px solid rgba(255,255,255,0.25); border-radius:6px; padding:4px 10px; font-size:11px; }
+
+.lang-toggle { display:flex; background:rgba(255,255,255,0.15); border-radius:8px; padding:3px; gap:2px; }
+.lang-btn { padding:5px 14px; border:none; border-radius:6px; font-size:12px; font-weight:600; cursor:pointer; transition:all 0.2s; background:transparent; color:rgba(255,255,255,0.7); }
+.lang-btn.active { background:white; color:var(--blue); }
+
+.hero { background:linear-gradient(135deg, #1A5276 0%, #2E86C1 100%); color:white; padding:28px 24px; text-align:center; }
+.hero h1 { font-size:24px; font-weight:700; margin-bottom:8px; }
+.hero p { font-size:13px; opacity:0.85; max-width:600px; margin:0 auto; }
+
+.status-bar { background:white; border-bottom:1px solid var(--border); padding:10px 24px; display:flex; align-items:center; gap:20px; flex-wrap:wrap; }
+.status-item { display:flex; align-items:center; gap:8px; font-size:12px; }
+.status-dot { width:9px; height:9px; border-radius:50%; animation:pulse 2s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.5;} }
+
+.container { max-width:1100px; margin:0 auto; padding:20px; display:grid; grid-template-columns:1fr 1fr; gap:18px; }
+@media(max-width:768px){ .container{grid-template-columns:1fr;} }
+
+.card { background:white; border-radius:12px; box-shadow:0 2px 12px rgba(0,0,0,0.06); border:1px solid var(--border); overflow:hidden; }
+.card-full { grid-column:1/-1; }
+.card-header { padding:14px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; }
+.card-title { font-size:14px; font-weight:700; color:var(--blue); display:flex; align-items:center; gap:8px; }
+.card-body { padding:18px; }
+
+.ward-select { width:100%; padding:10px 14px; border:2px solid var(--border); border-radius:8px; font-size:14px; font-family:'DM Sans',sans-serif; color:var(--text); background:white; cursor:pointer; margin-bottom:14px; outline:none; }
+.ward-select:focus { border-color:var(--blue-light); }
+
+.schedule-table { width:100%; border-collapse:collapse; font-size:13px; }
+.schedule-table th { background:var(--blue-pale); color:var(--blue); padding:9px 11px; text-align:left; font-weight:600; }
+.schedule-table td { padding:9px 11px; border-bottom:1px solid var(--border); }
+.schedule-table tr:last-child td { border-bottom:none; }
+.schedule-table tr:hover td { background:#F8FBFF; }
+
+.pressure-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px; margin-bottom:10px; }
+.pressure-zone { border-radius:8px; padding:12px; text-align:center; border:1px solid; }
+.pressure-zone.normal  { background:var(--green-light);  border-color:#A9DFBF; }
+.pressure-zone.warning { background:var(--yellow-light); border-color:#F9E79F; }
+.pressure-zone.critical{ background:var(--red-light);    border-color:#F5B7B1; }
+.zone-name-small { font-size:10px; color:var(--muted); margin-bottom:4px; }
+.zone-pressure { font-size:20px; font-weight:700; }
+.zone-pressure.normal  { color:var(--green); }
+.zone-pressure.warning { color:var(--yellow); }
+.zone-pressure.critical{ color:var(--red); }
+.zone-status-text { font-size:10px; font-weight:600; margin-top:2px; }
+
+.badge { display:inline-block; padding:2px 8px; border-radius:10px; font-size:11px; font-weight:600; }
+.badge-green  { background:var(--green-light);  color:var(--green); }
+.badge-yellow { background:var(--yellow-light); color:var(--yellow); }
+.badge-red    { background:var(--red-light);    color:var(--red); }
+.badge-blue   { background:var(--blue-pale);    color:var(--blue); }
+.badge-orange { background:var(--orange-light); color:var(--orange); }
+
+.form-group { margin-bottom:12px; }
+.form-label { display:block; font-size:12px; font-weight:600; color:var(--text); margin-bottom:5px; }
+.form-input, .form-select, .form-textarea { width:100%; padding:9px 12px; border:2px solid var(--border); border-radius:8px; font-size:13px; font-family:'DM Sans','Noto Sans Devanagari',sans-serif; color:var(--text); background:white; outline:none; transition:border-color 0.2s; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color:var(--blue-light); }
+.form-textarea { resize:vertical; min-height:75px; }
+
+.submit-btn { width:100%; padding:12px; background:var(--blue); color:white; border:none; border-radius:8px; font-size:14px; font-weight:700; cursor:pointer; transition:background 0.2s; font-family:'DM Sans',sans-serif; }
+.submit-btn:hover { background:var(--blue-light); }
+
+.success-msg { display:none; background:var(--green-light); border:1px solid #A9DFBF; border-radius:8px; padding:12px; text-align:center; color:var(--green); font-weight:600; margin-top:10px; }
+.success-msg.show { display:block; }
+
+.announcement-item { padding:13px; border-radius:8px; border-left:4px solid; margin-bottom:8px; background:#FAFCFF; }
+.announcement-item.info    { border-color:var(--blue-light); }
+.announcement-item.warning { border-color:var(--yellow); }
+.announcement-item.urgent  { border-color:var(--red); }
+.ann-title { font-size:13px; font-weight:700; margin-bottom:4px; }
+.ann-body  { font-size:12px; color:var(--muted); line-height:1.5; }
+.ann-date  { font-size:11px; color:var(--muted); margin-top:5px; }
+
+.footer { background:var(--blue); color:rgba(255,255,255,0.7); text-align:center; padding:14px; font-size:12px; margin-top:20px; }
+
+.helpline-box { background:var(--blue-pale); border:1px solid var(--border); border-radius:8px; padding:14px; text-align:center; margin-top:12px; }
+.helpline-number { font-size:22px; font-weight:700; color:var(--blue); }
+
+.loading-ann { text-align:center; padding:20px; color:var(--muted); font-size:13px; }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div style="display:flex;align-items:center;gap:14px">
+    <div>
+      <div class="logo-text">Aqua<span>Sync</span></div>
+      <div class="logo-sub" id="headerSub">Citizen Water Portal · Solapur Municipal Corporation</div>
+    </div>
+    <div class="smc-badge" id="smcBadge">SMC Solapur</div>
+  </div>
+  <div style="display:flex;align-items:center;gap:16px">
+    <div class="lang-toggle">
+      <button class="lang-btn active" id="btnEn" onclick="setLang('en')">English</button>
+      <button class="lang-btn" id="btnMr" onclick="setLang('mr')">मराठी</button>
+    </div>
+    <a href="../index.html" style="color:rgba(255,255,255,0.7);font-size:12px;text-decoration:none" id="engineerLink">🔧 Engineer Login</a>
+  </div>
+</div>
+
+<div class="hero">
+  <h1 id="heroTitle">💧 Your Water Supply, Your Right</h1>
+  <p id="heroSubtitle">Check your ward's water schedule, current pressure status, and raise complaints directly to Solapur Municipal Corporation.</p>
+</div>
+
+<div class="status-bar">
+  <div class="status-item"><div class="status-dot" style="background:#1E8449"></div><span id="statusText1">System Online</span></div>
+  <div class="status-item"><span>🕐</span><span id="statusClock"></span></div>
+  <div class="status-item"><span>📍</span><span id="statusCity">Solapur Municipal Corporation</span></div>
+  <div class="status-item" style="margin-left:auto"><span id="statusZones">✅ 3 Zones Active</span></div>
+</div>
+
+<div class="container">
+
+  <!-- LIVE PRESSURE -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📊 <span id="t_pressure">Live Pressure Status</span></div>
+      <div class="badge badge-green" id="liveBadge">● LIVE</div>
+    </div>
+    <div class="card-body">
+      <div class="pressure-grid">
+        <div class="pressure-zone normal" id="pzone-z1">
+          <div class="zone-name-small">Hotgi Road</div>
+          <div class="zone-pressure normal" id="pval-z1">3.2</div>
+          <div style="font-size:9px;color:var(--muted)">bar</div>
+          <div class="zone-status-text" style="color:var(--green)" id="pstat-z1">✅ Normal</div>
+        </div>
+        <div class="pressure-zone normal" id="pzone-z2">
+          <div class="zone-name-small">Akkalkot Rd</div>
+          <div class="zone-pressure normal" id="pval-z2">2.8</div>
+          <div style="font-size:9px;color:var(--muted)">bar</div>
+          <div class="zone-status-text" style="color:var(--green)" id="pstat-z2">✅ Normal</div>
+        </div>
+        <div class="pressure-zone normal" id="pzone-z3">
+          <div class="zone-name-small">Vijapur Rd</div>
+          <div class="zone-pressure normal" id="pval-z3">3.1</div>
+          <div style="font-size:9px;color:var(--muted)">bar</div>
+          <div class="zone-status-text" style="color:var(--green)" id="pstat-z3">✅ Normal</div>
+        </div>
+      </div>
+      <div style="font-size:11px;color:var(--muted);text-align:center">
+        <span id="pressureNote">Last updated:</span> <span id="lastUpdated">just now</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- SMC ANNOUNCEMENTS — fetched from Flask -->
+  <div class="card">
+    <div class="card-header">
+      <div class="card-title">📢 <span id="t_announce">SMC Announcements</span></div>
+      <div class="badge badge-blue" id="annCountBadge">Loading...</div>
+    </div>
+    <div class="card-body" id="announcementsBody">
+      <div class="loading-ann">⏳ Loading announcements...</div>
+    </div>
+  </div>
+
+  <!-- WATER SUPPLY SCHEDULE — fetched from Flask -->
+  <div class="card card-full">
+    <div class="card-header">
+      <div class="card-title">🗓️ <span id="t_schedule">Ward Water Supply Schedule</span></div>
+      <div class="badge badge-blue" id="scheduleWeek">This Week</div>
+    </div>
+    <div class="card-body">
+      <select class="ward-select" id="wardSelect" onchange="updateSchedule()">
+        <option value="">-- Select Your Ward / आपला वार्ड निवडा --</option>
+        <option value="w1">Ward 1 — Hotgi Road Area</option>
+        <option value="w2">Ward 2 — Akkalkot Road Area</option>
+        <option value="w3">Ward 3 — Vijapur Road Area</option>
+        <option value="w4">Ward 4 — Central Solapur</option>
+        <option value="w5">Ward 5 — Solapur Bazar</option>
+        <option value="w6">Ward 6 — Kegaon Area</option>
+        <option value="w7">Ward 7 — Mangalwar Peth</option>
+        <option value="w8">Ward 8 — Siddheshwar Area</option>
+      </select>
+      <div id="scheduleContent">
+        <div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">
+          👆 <span id="selectPrompt">Please select your ward to view schedule</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- COMPLAINT FORM -->
+  <div class="card card-full">
+    <div class="card-header">
+      <div class="card-title">📝 <span id="t_complaint">Raise a Complaint</span></div>
+      <div class="badge badge-orange" id="complaintBadge">24x7 Service</div>
+    </div>
+    <div class="card-body">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
+        <div>
+          <div class="form-group">
+            <label class="form-label" id="l_name">Full Name / पूर्ण नाव</label>
+            <input class="form-input" type="text" id="f_name" placeholder="Enter your name">
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="l_mobile">Mobile Number / मोबाईल नंबर</label>
+            <input class="form-input" type="tel" id="f_mobile" placeholder="10-digit mobile number">
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="l_ward">Ward / Area</label>
+            <select class="form-select" id="f_ward">
+              <option value="">Select Ward</option>
+              <option value="w1">Ward 1 — Hotgi Road</option>
+              <option value="w2">Ward 2 — Akkalkot Road</option>
+              <option value="w3">Ward 3 — Vijapur Road</option>
+              <option value="w4">Ward 4 — Central Solapur</option>
+              <option value="w5">Ward 5 — Solapur Bazar</option>
+              <option value="w6">Ward 6 — Kegaon</option>
+              <option value="w7">Ward 7 — Mangalwar Peth</option>
+              <option value="w8">Ward 8 — Siddheshwar</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="l_type">Complaint Type / तक्रारीचा प्रकार</label>
+            <select class="form-select" id="f_type">
+              <option value="">Select Type</option>
+              <option value="no_water">No water supply</option>
+              <option value="low_pressure">Low water pressure</option>
+              <option value="dirty_water">Dirty / contaminated water</option>
+              <option value="leakage">Pipeline leakage</option>
+              <option value="irregular">Irregular supply timing</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label class="form-label" id="l_desc">Description / वर्णन</label>
+            <textarea class="form-textarea" id="f_desc" placeholder="Describe your issue..."></textarea>
+          </div>
+          <button class="submit-btn" onclick="submitComplaint()" id="submitBtn">
+            📤 Submit Complaint / तक्रार सादर करा
+          </button>
+          <div class="success-msg" id="successMsg">
+            ✅ <span id="successText">Complaint submitted! SMC will respond within 24 hours.</span>
+          </div>
+        </div>
+
+        <div>
+          <div style="background:var(--blue-pale);border-radius:8px;padding:14px;margin-bottom:14px">
+            <div style="font-size:13px;font-weight:700;color:var(--blue);margin-bottom:8px" id="infoTitle">ℹ️ How it works</div>
+            <div style="font-size:12px;color:var(--text);line-height:1.8" id="infoSteps">
+              1. Fill in your details and ward<br>
+              2. Select complaint type<br>
+              3. Submit the form<br>
+              4. SMC engineers are notified instantly<br>
+              5. Issue resolved within 24-48 hours
+            </div>
+          </div>
+          <div class="helpline-box">
+            <div style="font-size:12px;color:var(--muted);margin-bottom:4px" id="helplineLabel">SMC Water Helpline</div>
+            <div class="helpline-number">📞 1916</div>
+            <div style="font-size:11px;color:var(--muted);margin-top:4px" id="helplineHours">Available 24x7</div>
+          </div>
+          <div style="background:#FEF9E7;border:1px solid #F9E79F;border-radius:8px;padding:12px;margin-top:12px">
+            <div style="font-size:12px;color:var(--orange);font-weight:600;margin-bottom:5px" id="urgentTitle">🚨 Emergency?</div>
+            <div style="font-size:12px;color:var(--text);line-height:1.6" id="urgentText">
+              For burst pipes or flooding:<br>
+              <strong>📞 0217-2728272</strong><br>
+              SMC Emergency Water Department
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<div class="footer">
+  <span id="footerText">AquaSync · Solapur Municipal Corporation · Smart Water Management System</span><br>
+  <span style="font-size:11px;opacity:0.6">Powered by Team HydroLogic2.0 · MIT Vishwaprayag University</span>
+</div>
+
+<script>
+// ============================================================
+// LANGUAGE
+// ============================================================
+const content = {
+  en: {
+    headerSub:"Citizen Water Portal · Solapur Municipal Corporation",
+    heroTitle:"💧 Your Water Supply, Your Right",
+    heroSubtitle:"Check your ward's water schedule, current pressure status, and raise complaints directly to Solapur Municipal Corporation.",
+    t_pressure:"Live Pressure Status", t_announce:"SMC Announcements",
+    t_schedule:"Ward Water Supply Schedule", t_complaint:"Raise a Complaint",
+    statusText1:"System Online", statusCity:"Solapur Municipal Corporation",
+    statusZones:"✅ 3 Zones Active", liveBadge:"● LIVE",
+    selectPrompt:"Please select your ward to view schedule",
+    l_name:"Full Name", l_mobile:"Mobile Number", l_ward:"Ward / Area",
+    l_type:"Complaint Type", l_desc:"Description",
+    infoTitle:"ℹ️ How it works",
+    infoSteps:"1. Fill in your details and ward<br>2. Select complaint type<br>3. Submit the form<br>4. SMC engineers notified instantly<br>5. Issue resolved within 24-48 hours",
+    helplineLabel:"SMC Water Helpline", helplineHours:"Available 24x7",
+    urgentTitle:"🚨 Emergency?",
+    urgentText:"For burst pipes or flooding:<br><strong>📞 0217-2728272</strong><br>SMC Emergency Water Department",
+    footerText:"AquaSync · Solapur Municipal Corporation · Smart Water Management System",
+    successText:"Complaint submitted! SMC will respond within 24 hours.",
+    engineerLink:"🔧 Engineer Login",
+    pstat_normal:"✅ Normal", pstat_warning:"⚠ Low", pstat_critical:"🚨 Critical",
+    pressureNote:"Last updated:", scheduleWeek:"This Week", complaintBadge:"24x7 Service",
+    days:["Monday","Tuesday","Wednesday","Thursday","Friday","Saturday","Sunday"],
+    scheduleHeader:["Day","Supply Time","Duration","Status"],
+    noAnn:"No announcements from SMC right now.",
+    statusOn:"On Schedule", statusDel:"Delayed", statusNo:"No Supply",
+    smcBadge:"SMC Solapur",
+  },
+  mr: {
+    headerSub:"नागरिक जल पोर्टल · सोलापूर महानगरपालिका",
+    heroTitle:"💧 तुमचा पाणीपुरवठा, तुमचा हक्क",
+    heroSubtitle:"तुमच्या वार्डाचे पाणी वेळापत्रक, सध्याची दाब स्थिती तपासा आणि सोलापूर महानगरपालिकेकडे थेट तक्रारी करा.",
+    t_pressure:"थेट दाब स्थिती", t_announce:"SMC घोषणा",
+    t_schedule:"वार्ड पाणीपुरवठा वेळापत्रक", t_complaint:"तक्रार नोंदवा",
+    statusText1:"सिस्टम ऑनलाइन", statusCity:"सोलापूर महानगरपालिका",
+    statusZones:"✅ ३ झोन सक्रिय", liveBadge:"● थेट",
+    selectPrompt:"वेळापत्रक पाहण्यासाठी तुमचा वार्ड निवडा",
+    l_name:"पूर्ण नाव", l_mobile:"मोबाईल नंबर", l_ward:"वार्ड / क्षेत्र",
+    l_type:"तक्रारीचा प्रकार", l_desc:"वर्णन",
+    infoTitle:"ℹ️ कसे कार्य करते",
+    infoSteps:"१. तुमची माहिती आणि वार्ड भरा<br>२. तक्रारीचा प्रकार निवडा<br>३. फॉर्म सबमिट करा<br>४. SMC अभियंत्यांना तत्काळ सूचना<br>५. २४-४८ तासांत समस्या सोडवली जाईल",
+    helplineLabel:"SMC पाणी हेल्पलाइन", helplineHours:"२४x७ उपलब्ध",
+    urgentTitle:"🚨 आपत्कालीन परिस्थिती?",
+    urgentText:"पाइप फुटणे किंवा पूर:<br><strong>📞 ०२१७-२७२८२७२</strong><br>SMC आपत्कालीन जल विभाग",
+    footerText:"AquaSync · सोलापूर महानगरपालिका · स्मार्ट जल व्यवस्थापन प्रणाली",
+    successText:"तक्रार यशस्वीरीत्या सादर केली! SMC २४ तासांत प्रतिसाद देईल.",
+    engineerLink:"🔧 अभियंता लॉगिन",
+    pstat_normal:"✅ सामान्य", pstat_warning:"⚠ कमी", pstat_critical:"🚨 गंभीर",
+    pressureNote:"शेवटचे अपडेट:", scheduleWeek:"या आठवड्यात", complaintBadge:"२४x७ सेवा",
+    days:["सोमवार","मंगळवार","बुधवार","गुरुवार","शुक्रवार","शनिवार","रविवार"],
+    scheduleHeader:["दिवस","पुरवठा वेळ","कालावधी","स्थिती"],
+    noAnn:"SMC कडून सध्या कोणत्याही घोषणा नाहीत.",
+    statusOn:"वेळेवर", statusDel:"उशीर", statusNo:"पुरवठा नाही",
+    smcBadge:"SMC सोलापूर",
+  }
+};
+
+let currentLang = 'en';
+let flaskSchedule = null;
+
+function setLang(lang) {
+  currentLang = lang;
+  document.getElementById('btnEn').className = lang==='en'?'lang-btn active':'lang-btn';
+  document.getElementById('btnMr').className = lang==='mr'?'lang-btn active':'lang-btn';
+  const c = content[lang];
+  const ids = ['headerSub','heroTitle','heroSubtitle','t_pressure','t_announce','t_schedule','t_complaint',
+    'statusText1','statusCity','statusZones','liveBadge','selectPrompt','l_name','l_mobile','l_ward',
+    'l_type','l_desc','helplineLabel','helplineHours','urgentTitle','footerText','pressureNote',
+    'scheduleWeek','complaintBadge','engineerLink','smcBadge'];
+  ids.forEach(id => {
+    const el = document.getElementById(id);
+    if(el && c[id]) el.textContent = c[id];
+  });
+  document.getElementById('infoTitle').textContent = c.infoTitle;
+  document.getElementById('infoSteps').innerHTML = c.infoSteps;
+  document.getElementById('urgentText').innerHTML = c.urgentText;
+  renderAnnouncements();
+  updateSchedule();
+}
+
+// ============================================================
+// ANNOUNCEMENTS — fetched from Flask
+// ============================================================
+let cachedAnnouncements = [];
+
+async function fetchAnnouncements() {
+  try {
+    const res = await fetch('http://localhost:5001/announcements');
+    const data = await res.json();
+    cachedAnnouncements = data.announcements || [];
+    renderAnnouncements();
+    document.getElementById('annCountBadge').textContent =
+      cachedAnnouncements.length > 0 ? `${cachedAnnouncements.length} Active` : 'No Updates';
+  } catch(e) {
+    // Flask not running — show default message
+    cachedAnnouncements = [];
+    renderAnnouncements();
+  }
+}
+
+function renderAnnouncements() {
+  const c = content[currentLang];
+  const body = document.getElementById('announcementsBody');
+  if (cachedAnnouncements.length === 0) {
+    body.innerHTML = `<div class="loading-ann">📭 ${c.noAnn}</div>`;
+    return;
+  }
+  body.innerHTML = cachedAnnouncements.map(a => `
+    <div class="announcement-item ${a.type}">
+      <div class="ann-title">${a.title}</div>
+      <div class="ann-body">${a.body}</div>
+      <div class="ann-date">📅 ${a.timestamp} · ${a.posted_by}</div>
+    </div>
+  `).join('');
+}
+
+// ============================================================
+// SCHEDULE — fetched from Flask
+// ============================================================
+async function fetchSchedule() {
+  try {
+    const res = await fetch('http://localhost:5001/schedule');
+    const data = await res.json();
+    flaskSchedule = data.schedule;
+    updateSchedule();
+  } catch(e) {
+    flaskSchedule = null;
+  }
+}
+
+function updateSchedule() {
+  const ward = document.getElementById('wardSelect').value;
+  const c = content[currentLang];
+  if (!ward) {
+    document.getElementById('scheduleContent').innerHTML = `
+      <div style="text-align:center;color:var(--muted);padding:20px;font-size:13px">
+        👆 ${c.selectPrompt}
+      </div>`;
+    return;
+  }
+
+  const schedule = flaskSchedule || {};
+  const data = schedule[ward];
+  if (!data) {
+    document.getElementById('scheduleContent').innerHTML = `<div style="text-align:center;color:var(--muted);padding:20px">Loading schedule...</div>`;
+    return;
+  }
+
+  const today = new Date().getDay();
+  const todayIdx = today === 0 ? 6 : today - 1;
+  const durations = {w1:"2 hrs",w2:"2 hrs",w3:"2 hrs",w4:"2.5 hrs",w5:"2 hrs",w6:"2 hrs",w7:"2 hrs",w8:"2 hrs"};
+  const statusColors = {normal:"badge-green",warning:"badge-yellow",critical:"badge-red"};
+  const statusLabels = {
+    en:  {normal:"On Schedule",warning:"Delayed",critical:"No Supply"},
+    mr:  {normal:"वेळेवर",warning:"उशीर",critical:"पुरवठा नाही"}
+  };
+
+  const rows = c.days.map((day, i) => {
+    const isToday = i === todayIdx;
+    const stat = data.status[i];
+    return `<tr style="${isToday?'background:#EBF5FB;font-weight:600':''}">
+      <td>${isToday?'▶ ':''}${day}${isToday?' (Today)':''}</td>
+      <td>${data.times[i]}</td>
+      <td>${data.times[i]==='No Supply'||data.times[i]==='Maintenance'?'—':durations[ward]}</td>
+      <td><span class="badge ${statusColors[stat]}">${statusLabels[currentLang][stat]}</span></td>
+    </tr>`;
+  }).join('');
+
+  document.getElementById('scheduleContent').innerHTML = `
+    <table class="schedule-table">
+      <thead><tr>${c.scheduleHeader.map(h=>`<th>${h}</th>`).join('')}</tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+    <div style="font-size:11px;color:var(--muted);margin-top:8px;text-align:center">
+      ⚡ ${currentLang==='en'?'Schedule updated live by SMC engineers':'वेळापत्रक SMC अभियंत्यांनी थेट अपडेट केले'}
+    </div>`;
+}
+
+// ============================================================
+// COMPLAINT SUBMISSION
+// ============================================================
+async function submitComplaint() {
+  const name   = document.getElementById('f_name').value.trim();
+  const mobile = document.getElementById('f_mobile').value.trim();
+  const ward   = document.getElementById('f_ward').value;
+  const type   = document.getElementById('f_type').value;
+  const desc   = document.getElementById('f_desc').value.trim();
+
+  if (!name || !mobile || !ward || !type) {
+    alert(currentLang==='en'?'Please fill all required fields.':'कृपया सर्व आवश्यक फील्ड भरा.');
+    return;
+  }
+  if (mobile.length !== 10 || isNaN(mobile)) {
+    alert(currentLang==='en'?'Please enter a valid 10-digit mobile number.':'कृपया वैध १०-अंकी मोबाईल नंबर प्रविष्ट करा.');
+    return;
+  }
+
+  try {
+    const res = await fetch('http://localhost:5001/complaint', {
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({name,mobile,ward,type,description:desc})
+    });
+    const data = await res.json();
+    if (data.status==='success') {
+      document.getElementById('successMsg').classList.add('show');
+      document.getElementById('successText').textContent =
+        currentLang==='en'
+          ? `✅ Complaint #${data.complaint_id} submitted! SMC will respond within 24 hours.`
+          : `✅ तक्रार #${data.complaint_id} सादर केली! SMC २४ तासांत प्रतिसाद देईल.`;
+      document.getElementById('f_name').value='';
+      document.getElementById('f_mobile').value='';
+      document.getElementById('f_ward').value='';
+      document.getElementById('f_type').value='';
+      document.getElementById('f_desc').value='';
+      setTimeout(()=>document.getElementById('successMsg').classList.remove('show'),6000);
+    }
+  } catch(e) {
+    document.getElementById('successMsg').classList.add('show');
+    document.getElementById('successText').textContent = content[currentLang].successText;
+    setTimeout(()=>document.getElementById('successMsg').classList.remove('show'),5000);
+  }
+}
+
+// ============================================================
+// LIVE PRESSURE
+// ============================================================
+let t = 0;
+function updatePressure() {
+  t += 0.05;
+  const p = [
+    3.2+Math.sin(t*0.8)*0.6+(Math.random()-0.5)*0.2,
+    2.8+Math.sin(t*0.6+1)*0.8+(Math.random()-0.5)*0.2,
+    3.1+Math.sin(t*0.4+2)*0.5+(Math.random()-0.5)*0.2
+  ].map(v=>Math.max(0.3,Math.min(4.5,v)));
+  const leak=Math.sin(t*0.1)<-0.95;
+  if(leak)p[0]=0.4+Math.random()*0.3;
+  ['z1','z2','z3'].forEach((id,i)=>{
+    const pressure=p[i];
+    const status=pressure<1.0?'critical':pressure<2.0?'warning':'normal';
+    const c=content[currentLang];
+    const statColor=status==='critical'?'var(--red)':status==='warning'?'var(--yellow)':'var(--green)';
+    document.getElementById(`pzone-${id}`).className=`pressure-zone ${status}`;
+    document.getElementById(`pval-${id}`).textContent=pressure.toFixed(1);
+    document.getElementById(`pval-${id}`).className=`zone-pressure ${status}`;
+    document.getElementById(`pstat-${id}`).textContent=c[`pstat_${status}`];
+    document.getElementById(`pstat-${id}`).style.color=statColor;
+  });
+  document.getElementById('lastUpdated').textContent=new Date().toLocaleTimeString();
+}
+
+// Clock
+setInterval(()=>{
+  document.getElementById('statusClock').textContent=
+    new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+},1000);
+
+// Init
+fetchAnnouncements();
+fetchSchedule();
+updatePressure();
+setInterval(updatePressure,2000);
+setInterval(fetchAnnouncements,15000); // refresh every 15 seconds
+setInterval(fetchSchedule,30000);      // refresh every 30 seconds
+</script>
+
+</body>
+</html>

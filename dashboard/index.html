@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<title>AquaSync — Engineer Dashboard</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Rajdhani:wght@400;500;600;700&family=DM+Sans:wght@300;400;500;600&display=swap');
+
+:root {
+  --bg: #0A0F1E;
+  --panel: #0F1629;
+  --border: #1E2D4A;
+  --accent: #00D4FF;
+  --green: #00FF88;
+  --yellow: #FFD600;
+  --red: #FF3B3B;
+  --orange: #FF7B00;
+  --text: #E2EAF4;
+  --muted: #5A7094;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  background: var(--bg);
+  font-family: 'DM Sans', sans-serif;
+  color: var(--text);
+  min-height: 100vh;
+}
+
+.topbar {
+  background: var(--panel);
+  border-bottom: 1px solid var(--border);
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 53px;
+}
+.logo { font-family:'Rajdhani',sans-serif; font-size:22px; font-weight:700; color:var(--accent); letter-spacing:0.05em; }
+.logo span { color:white; }
+.tagline { font-size:10px; color:var(--muted); letter-spacing:0.06em; text-transform:uppercase; }
+.topbar-right { display:flex; align-items:center; gap:16px; font-size:11px; color:var(--muted); }
+.live-badge { display:flex; align-items:center; gap:6px; background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.3); border-radius:20px; padding:4px 12px; color:var(--green); font-size:10px; font-weight:600; }
+.live-dot { width:7px; height:7px; background:var(--green); border-radius:50%; animation:pulse 1.5s infinite; }
+@keyframes pulse { 0%,100%{opacity:1;} 50%{opacity:0.4;} }
+.nav-link { color:var(--muted); text-decoration:none; font-size:11px; transition:color 0.2s; }
+.nav-link:hover { color:var(--accent); }
+
+.main { display:grid; grid-template-columns:300px 1fr; height:calc(100vh - 53px); overflow:hidden; }
+
+.left-panel { background:var(--panel); border-right:1px solid var(--border); overflow-y:auto; padding:12px; display:flex; flex-direction:column; gap:10px; height:100%; }
+
+.section-title { font-family:'Rajdhani',sans-serif; font-size:10px; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
+
+.zone-card { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:8px; padding:10px 12px; margin-bottom:6px; transition:border-color 0.3s; }
+.zone-card.critical { border-color:rgba(255,59,59,0.5); background:rgba(255,59,59,0.04); }
+.zone-card.warning  { border-color:rgba(255,214,0,0.4); background:rgba(255,214,0,0.03); }
+.zone-card.normal   { border-color:rgba(0,255,136,0.25); }
+.zone-header { display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+.zone-name { font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:600; color:white; }
+.zone-area { font-size:9px; color:var(--muted); }
+.status-badge { font-size:8px; font-weight:700; letter-spacing:0.08em; padding:2px 7px; border-radius:10px; text-transform:uppercase; }
+.status-badge.critical { background:rgba(255,59,59,0.2); color:var(--red); border:1px solid rgba(255,59,59,0.3); }
+.status-badge.warning  { background:rgba(255,214,0,0.15); color:var(--yellow); border:1px solid rgba(255,214,0,0.3); }
+.status-badge.normal   { background:rgba(0,255,136,0.1); color:var(--green); border:1px solid rgba(0,255,136,0.2); }
+.pressure-row { display:flex; align-items:center; gap:8px; margin-bottom:4px; }
+.pressure-val { font-family:'Rajdhani',sans-serif; font-size:22px; font-weight:700; line-height:1; transition:color 0.3s; }
+.pressure-val.critical { color:var(--red); }
+.pressure-val.warning  { color:var(--yellow); }
+.pressure-val.normal   { color:var(--green); }
+.pressure-unit { font-size:10px; color:var(--muted); }
+.bar-bg { height:3px; background:rgba(255,255,255,0.08); border-radius:2px; flex:1; }
+.bar-fill { height:100%; border-radius:2px; transition:width 0.5s ease; }
+.zone-meta { display:flex; justify-content:space-between; font-size:9px; color:var(--muted); }
+
+.alert-item { display:flex; align-items:flex-start; gap:8px; padding:8px 10px; border-radius:6px; background:rgba(255,255,255,0.02); border:1px solid var(--border); margin-bottom:5px; }
+.alert-icon { font-size:12px; flex-shrink:0; }
+.alert-text { font-size:10px; line-height:1.4; }
+.alert-text strong { display:block; color:white; font-size:10.5px; margin-bottom:1px; }
+.alert-time { font-size:9px; color:var(--muted); }
+
+.stats-row { display:grid; grid-template-columns:1fr 1fr; gap:6px; }
+.stat-box { background:rgba(255,255,255,0.03); border:1px solid var(--border); border-radius:7px; padding:8px; text-align:center; }
+.stat-val { font-family:'Rajdhani',sans-serif; font-size:20px; font-weight:700; }
+.stat-label { font-size:9px; color:var(--muted); margin-top:2px; }
+
+.ml-box { background:rgba(0,212,255,0.05); border:1px solid rgba(0,212,255,0.2); border-radius:8px; padding:10px; }
+.ml-title { font-family:'Rajdhani',sans-serif; font-size:10px; font-weight:700; color:var(--accent); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:6px; }
+.ml-prediction { font-size:11px; color:var(--text); line-height:1.5; }
+.ml-prediction span { color:var(--yellow); font-weight:600; }
+
+.conn-box { background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:7px; padding:8px 10px; font-size:10px; }
+.conn-status { display:flex; align-items:center; gap:6px; font-weight:600; }
+.conn-dot { width:7px; height:7px; border-radius:50%; }
+
+/* Complaint card */
+.complaint-card { border-radius:7px; padding:10px; margin-bottom:6px; }
+.complaint-card.pending  { border:1px solid rgba(255,214,0,0.3); background:rgba(255,214,0,0.03); }
+.complaint-card.resolved { border:1px solid rgba(0,255,136,0.2); background:rgba(0,255,136,0.02); }
+.resolve-btn { background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.3); color:#00FF88; border-radius:5px; padding:3px 8px; font-size:9px; cursor:pointer; font-weight:600; font-family:'DM Sans',sans-serif; }
+.resolve-btn:hover { background:rgba(0,255,136,0.2); }
+
+/* Admin panel styles */
+.admin-box { background:rgba(255,255,255,0.02); border:1px solid var(--border); border-radius:8px; padding:12px; }
+.admin-input { width:100%; padding:7px 10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:white; font-size:11px; font-family:'DM Sans',sans-serif; outline:none; margin-bottom:6px; transition:border-color 0.2s; }
+.admin-input:focus { border-color:var(--accent); }
+.admin-input::placeholder { color:var(--muted); }
+.admin-select { width:100%; padding:7px 10px; background:#0F1629; border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:white; font-size:11px; font-family:'DM Sans',sans-serif; outline:none; margin-bottom:6px; cursor:pointer; }
+.admin-textarea { width:100%; padding:7px 10px; background:rgba(255,255,255,0.05); border:1px solid rgba(255,255,255,0.1); border-radius:6px; color:white; font-size:11px; font-family:'DM Sans',sans-serif; outline:none; margin-bottom:6px; resize:vertical; min-height:60px; }
+.admin-textarea:focus { border-color:var(--accent); }
+.admin-btn { width:100%; padding:8px; background:linear-gradient(135deg,#1A5276,#2E86C1); color:white; border:none; border-radius:6px; font-size:11px; font-weight:700; cursor:pointer; font-family:'DM Sans',sans-serif; transition:opacity 0.2s; }
+.admin-btn:hover { opacity:0.9; }
+.admin-success { display:none; background:rgba(0,255,136,0.1); border:1px solid rgba(0,255,136,0.3); border-radius:6px; padding:6px 10px; font-size:10px; color:var(--green); text-align:center; margin-top:6px; }
+.admin-success.show { display:block; }
+
+.ann-card { background:rgba(255,255,255,0.02); border-radius:6px; padding:8px 10px; margin-bottom:5px; border-left:3px solid; }
+.ann-card.info    { border-color:var(--accent); }
+.ann-card.warning { border-color:var(--yellow); }
+.ann-card.urgent  { border-color:var(--red); }
+.del-btn { background:rgba(255,59,59,0.1); border:1px solid rgba(255,59,59,0.3); color:var(--red); border-radius:4px; padding:2px 7px; font-size:9px; cursor:pointer; font-family:'DM Sans',sans-serif; }
+
+/* Schedule update */
+.schedule-grid { display:grid; grid-template-columns:1fr 1fr; gap:6px; margin-bottom:6px; }
+
+/* MAP */
+.map-area { position:relative; background:#070D1A; overflow:hidden; height:100%; }
+.map-svg { width:100%; height:100%; }
+.map-overlay-title { position:absolute; top:12px; left:12px; background:rgba(10,15,30,0.9); border:1px solid var(--border); border-radius:8px; padding:8px 12px; }
+.map-overlay-title h2 { font-family:'Rajdhani',sans-serif; font-size:13px; font-weight:700; color:white; }
+.map-overlay-title p { font-size:9px; color:var(--muted); margin-top:1px; }
+.map-legend { position:absolute; bottom:12px; left:12px; background:rgba(10,15,30,0.92); border:1px solid var(--border); border-radius:8px; padding:10px 12px; }
+.map-legend h3 { font-family:'Rajdhani',sans-serif; font-size:10px; font-weight:600; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:6px; }
+.legend-row { display:flex; align-items:center; gap:7px; font-size:10px; margin-bottom:4px; }
+.legend-circle { width:10px; height:10px; border-radius:50%; flex-shrink:0; }
+.map-info { position:absolute; top:12px; right:12px; background:rgba(10,15,30,0.92); border:1px solid var(--border); border-radius:8px; padding:10px 12px; width:180px; }
+.map-info h3 { font-family:'Rajdhani',sans-serif; font-size:10px; font-weight:600; color:var(--muted); letter-spacing:0.08em; text-transform:uppercase; margin-bottom:6px; }
+.info-row { display:flex; justify-content:space-between; font-size:10px; margin-bottom:4px; }
+.info-row span:last-child { font-weight:600; }
+.leak-banner { display:none; position:absolute; top:0; left:0; right:0; background:rgba(255,59,59,0.95); color:white; text-align:center; padding:7px; font-size:12px; font-weight:700; font-family:'Rajdhani',sans-serif; letter-spacing:0.05em; z-index:100; animation:blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1;} 50%{opacity:0.7;} }
+.leak-banner.show { display:block; }
+@keyframes leakPulse { 0%{r:8;opacity:1;} 100%{r:22;opacity:0;} }
+.leak-pulse { animation:leakPulse 1.8s ease-out infinite; }
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div>
+    <div class="logo">Aqua<span>Sync</span></div>
+    <div class="tagline">Engineer Dashboard · SMC Solapur</div>
+  </div>
+  <div class="topbar-right">
+    <div class="live-badge"><div class="live-dot"></div><span id="dataSourceLabel">SIMULATED LIVE DATA</span></div>
+    <a href="../citizen/index.html" class="nav-link">👤 Citizen Portal</a>
+    <a href="../index.html" class="nav-link">🚪 Logout</a>
+    <span id="clock"></span>
+  </div>
+</div>
+
+<div class="main">
+  <div class="left-panel">
+
+    <!-- Connection -->
+    <div>
+      <div class="section-title">Data Source</div>
+      <div class="conn-box">
+        <div class="conn-status">
+          <div class="conn-dot" id="connDot" style="background:#FFD600"></div>
+          <span id="connText">Simulated Data Mode</span>
+        </div>
+        <div style="font-size:9px;color:var(--muted);margin-top:3px" id="connNote">Hardware not connected</div>
+      </div>
+    </div>
+
+    <!-- Stats -->
+    <div>
+      <div class="section-title">System Overview</div>
+      <div class="stats-row">
+        <div class="stat-box"><div class="stat-val" id="criticalCount" style="color:#FF3B3B">0</div><div class="stat-label">Critical</div></div>
+        <div class="stat-box"><div class="stat-val" id="warningCount" style="color:#FFD600">0</div><div class="stat-label">Warning</div></div>
+        <div class="stat-box"><div class="stat-val" id="normalCount" style="color:#00FF88">3</div><div class="stat-label">Normal</div></div>
+        <div class="stat-box"><div class="stat-val" id="leakCount" style="color:#00D4FF">0</div><div class="stat-label">Leaks</div></div>
+      </div>
+    </div>
+
+    <!-- Zones -->
+    <div>
+      <div class="section-title">Zone Pressure Monitor</div>
+      <div class="zone-card normal" id="card-z1">
+        <div class="zone-header">
+          <div><div class="zone-name">Zone 1 — Hotgi Road</div><div class="zone-area">High Elevation · Tail-End</div></div>
+          <div class="status-badge normal" id="badge-z1">Normal</div>
+        </div>
+        <div class="pressure-row">
+          <div class="pressure-val normal" id="pressure-z1">3.2</div>
+          <div class="pressure-unit">bar</div>
+          <div class="bar-bg"><div class="bar-fill" id="bar-z1" style="width:64%;background:#00FF88"></div></div>
+        </div>
+        <div class="zone-meta"><span id="meta-z1">Optimal</span><span id="flow-z1">51 L/min</span></div>
+      </div>
+      <div class="zone-card normal" id="card-z2">
+        <div class="zone-header">
+          <div><div class="zone-name">Zone 2 — Akkalkot Road</div><div class="zone-area">Elevated Area</div></div>
+          <div class="status-badge normal" id="badge-z2">Normal</div>
+        </div>
+        <div class="pressure-row">
+          <div class="pressure-val normal" id="pressure-z2">2.8</div>
+          <div class="pressure-unit">bar</div>
+          <div class="bar-bg"><div class="bar-fill" id="bar-z2" style="width:56%;background:#00FF88"></div></div>
+        </div>
+        <div class="zone-meta"><span id="meta-z2">Optimal</span><span id="flow-z2">44 L/min</span></div>
+      </div>
+      <div class="zone-card normal" id="card-z3">
+        <div class="zone-header">
+          <div><div class="zone-name">Zone 3 — Vijapur Road</div><div class="zone-area">Mid Elevation</div></div>
+          <div class="status-badge normal" id="badge-z3">Normal</div>
+        </div>
+        <div class="pressure-row">
+          <div class="pressure-val normal" id="pressure-z3">3.1</div>
+          <div class="pressure-unit">bar</div>
+          <div class="bar-bg"><div class="bar-fill" id="bar-z3" style="width:62%;background:#00FF88"></div></div>
+        </div>
+        <div class="zone-meta"><span id="meta-z3">Optimal</span><span id="flow-z3">49 L/min</span></div>
+      </div>
+    </div>
+
+    <!-- ML -->
+    <div>
+      <div class="section-title">ML Pressure Prediction</div>
+      <div class="ml-box">
+        <div class="ml-title">🤖 Analytics Engine</div>
+        <div class="ml-prediction" id="mlPrediction">Collecting data...</div>
+      </div>
+    </div>
+
+    <!-- Anomaly Detection Panel -->
+<div>
+  <div class="section-title">🔍 Anomaly Detection</div>
+  <div id="anomalyPanel" style="
+    background:rgba(255,255,255,0.02);
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:10px;
+    font-size:10px;
+  ">
+    <div style="text-align:center;color:var(--muted);padding:8px">
+      ⏳ Collecting data for anomaly detection...
+    </div>
+  </div>
+  <div style="margin-top:6px;font-size:9px;color:var(--muted);text-align:center">
+    Powered by Isolation Forest Algorithm
+  </div>
+</div>
+
+    <!-- Alerts -->
+    <div>
+      <div class="section-title">Live Alerts</div>
+      <div id="alertsPanel">
+        <div class="alert-item" style="border-color:rgba(0,212,255,0.3)">
+          <div class="alert-icon">✅</div>
+          <div class="alert-text"><strong>All Systems Normal</strong><div class="alert-time">Just now</div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Complaints -->
+    <div>
+      <div class="section-title">📝 Citizen Complaints</div>
+      <div class="stats-row" style="margin-bottom:8px">
+        <div class="stat-box"><div class="stat-val" id="complaintTotal" style="color:var(--accent)">0</div><div class="stat-label">Total</div></div>
+        <div class="stat-box"><div class="stat-val" id="complaintPending" style="color:var(--yellow)">0</div><div class="stat-label">Pending</div></div>
+        <div class="stat-box" style="grid-column:1/-1"><div class="stat-val" id="complaintResolved" style="color:var(--green)">0</div><div class="stat-label">Resolved</div></div>
+      </div>
+      <div id="complaintsPanel">
+        <div style="text-align:center;color:var(--muted);padding:12px;font-size:10px">Loading...</div>
+      </div>
+    </div>
+
+    <!-- POST ANNOUNCEMENT -->
+    <div>
+      <div class="section-title">📢 Post Announcement</div>
+      <div class="admin-box">
+        <input class="admin-input" type="text" id="annTitle" placeholder="Announcement title..."/>
+        <textarea class="admin-textarea" id="annBody" placeholder="Message to citizens..."></textarea>
+        <select class="admin-select" id="annType">
+          <option value="info">ℹ️ Info</option>
+          <option value="warning">⚠️ Warning</option>
+          <option value="urgent">🚨 Urgent</option>
+        </select>
+        <button class="admin-btn" onclick="postAnnouncement()">📤 Post to Citizen Portal</button>
+        <div class="admin-success" id="annSuccess">✅ Announcement posted! Citizens can see it now.</div>
+      </div>
+
+      <!-- Current announcements -->
+      <div style="margin-top:8px">
+        <div style="font-size:9px;color:var(--muted);margin-bottom:6px;text-transform:uppercase;letter-spacing:0.08em">Posted Announcements</div>
+        <div id="annList">
+          <div style="text-align:center;color:var(--muted);font-size:10px;padding:8px">No announcements yet</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- UPDATE SCHEDULE -->
+    <div>
+      <div class="section-title">🗓 Update Ward Schedule</div>
+      <div class="admin-box">
+        <select class="admin-select" id="schedWard">
+          <option value="">Select Ward</option>
+          <option value="w1">Ward 1 — Hotgi Road</option>
+          <option value="w2">Ward 2 — Akkalkot Road</option>
+          <option value="w3">Ward 3 — Vijapur Road</option>
+          <option value="w4">Ward 4 — Central Solapur</option>
+          <option value="w5">Ward 5 — Solapur Bazar</option>
+          <option value="w6">Ward 6 — Kegaon</option>
+          <option value="w7">Ward 7 — Mangalwar Peth</option>
+          <option value="w8">Ward 8 — Siddheshwar</option>
+        </select>
+        <select class="admin-select" id="schedDay">
+          <option value="0">Monday</option>
+          <option value="1">Tuesday</option>
+          <option value="2">Wednesday</option>
+          <option value="3">Thursday</option>
+          <option value="4">Friday</option>
+          <option value="5">Saturday</option>
+          <option value="6">Sunday</option>
+        </select>
+        <input class="admin-input" type="text" id="schedTime" placeholder="e.g. 6:00 AM – 8:00 AM"/>
+        <select class="admin-select" id="schedStatus">
+          <option value="normal">✅ Normal</option>
+          <option value="warning">⚠️ Delayed</option>
+          <option value="critical">🚨 No Supply</option>
+        </select>
+        <button class="admin-btn" onclick="updateSchedule()">💾 Update Schedule</button>
+        <div class="admin-success" id="schedSuccess">✅ Schedule updated! Citizens can see it now.</div>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- MAP -->
+  <div class="map-area">
+    <div class="leak-banner" id="leakBanner">🚨 LEAK DETECTED — Check Alerts Panel</div>
+
+    <svg class="map-svg" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+      <defs>
+        <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+          <path d="M 40 0 L 0 0 0 40" fill="none" stroke="rgba(30,45,74,0.4)" stroke-width="0.5"/>
+        </pattern>
+        <radialGradient id="heat-z1" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#00FF88" stop-opacity="0.5" id="heatStop-z1"/>
+          <stop offset="100%" stop-color="#00FF88" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="heat-z2" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#00FF88" stop-opacity="0.5" id="heatStop-z2"/>
+          <stop offset="100%" stop-color="#00FF88" stop-opacity="0"/>
+        </radialGradient>
+        <radialGradient id="heat-z3" cx="50%" cy="50%" r="50%">
+          <stop offset="0%" stop-color="#00FF88" stop-opacity="0.5" id="heatStop-z3"/>
+          <stop offset="100%" stop-color="#00FF88" stop-opacity="0"/>
+        </radialGradient>
+      </defs>
+      <rect width="800" height="600" fill="#070D1A"/>
+      <rect width="800" height="600" fill="url(#grid)"/>
+      <path d="M 0 320 Q 200 300 400 340 Q 600 380 800 360 L 800 390 Q 600 410 400 370 Q 200 330 0 350 Z" fill="rgba(0,100,200,0.15)" stroke="rgba(0,150,255,0.2)" stroke-width="1"/>
+      <text x="580" y="370" font-size="10" fill="rgba(0,150,255,0.5)">Bhima River</text>
+      <line x1="400" y1="0" x2="400" y2="600" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+      <line x1="0" y1="280" x2="800" y2="280" stroke="rgba(255,255,255,0.06)" stroke-width="8"/>
+      <text x="50" y="272" font-size="9" fill="rgba(255,255,255,0.2)">Akkalkot Road</text>
+      <text x="620" y="272" font-size="9" fill="rgba(255,255,255,0.2)">Hotgi Road</text>
+      <ellipse cx="640" cy="130" rx="110" ry="90" fill="url(#heat-z1)"/>
+      <ellipse cx="160" cy="200" rx="100" ry="85" fill="url(#heat-z2)"/>
+      <ellipse cx="380" cy="150" rx="100" ry="80" fill="url(#heat-z3)"/>
+      <g stroke="rgba(0,212,255,0.25)" stroke-width="2" fill="none" stroke-dasharray="6,4">
+        <line x1="400" y1="80" x2="640" y2="130"/>
+        <line x1="400" y1="80" x2="160" y2="200"/>
+        <line x1="400" y1="80" x2="380" y2="150"/>
+      </g>
+      <rect x="388" y="68" width="24" height="24" rx="4" fill="#00D4FF" opacity="0.9"/>
+      <text x="400" y="84" text-anchor="middle" font-size="10" fill="#070D1A" font-weight="bold">P</text>
+      <text x="400" y="104" text-anchor="middle" font-size="9" fill="rgba(0,212,255,0.7)">Main Pump</text>
+      <!-- Zone 1 -->
+      <circle cx="640" cy="130" r="18" fill="rgba(0,255,136,0.1)" stroke="#00FF88" stroke-width="2" id="circle-z1"/>
+      <text x="640" y="125" text-anchor="middle" font-size="9" fill="white" font-weight="bold">Z1</text>
+      <text x="640" y="137" text-anchor="middle" font-size="8" fill="#00FF88" id="mapPressure-z1">3.2 bar</text>
+      <text x="640" y="155" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.5)">Hotgi Road</text>
+      <circle cx="665" cy="105" r="8" fill="rgba(255,59,59,0.8)" stroke="#FF3B3B" stroke-width="1.5" id="leakPin-z1" style="display:none"/>
+      <circle cx="665" cy="105" r="8" fill="none" stroke="#FF3B3B" stroke-width="1.5" class="leak-pulse" id="leakPulse-z1" style="display:none"/>
+      <!-- Zone 2 -->
+      <circle cx="160" cy="200" r="18" fill="rgba(0,255,136,0.1)" stroke="#00FF88" stroke-width="2" id="circle-z2"/>
+      <text x="160" y="195" text-anchor="middle" font-size="9" fill="white" font-weight="bold">Z2</text>
+      <text x="160" y="207" text-anchor="middle" font-size="8" fill="#00FF88" id="mapPressure-z2">2.8 bar</text>
+      <text x="160" y="225" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.5)">Akkalkot Rd</text>
+      <circle cx="185" cy="175" r="8" fill="rgba(255,59,59,0.8)" stroke="#FF3B3B" stroke-width="1.5" id="leakPin-z2" style="display:none"/>
+      <circle cx="185" cy="175" r="8" fill="none" stroke="#FF3B3B" stroke-width="1.5" class="leak-pulse" id="leakPulse-z2" style="display:none"/>
+      <!-- Zone 3 -->
+      <circle cx="380" cy="150" r="18" fill="rgba(0,255,136,0.1)" stroke="#00FF88" stroke-width="2" id="circle-z3"/>
+      <text x="380" y="145" text-anchor="middle" font-size="9" fill="white" font-weight="bold">Z3</text>
+      <text x="380" y="157" text-anchor="middle" font-size="8" fill="#00FF88" id="mapPressure-z3">3.1 bar</text>
+      <text x="380" y="175" text-anchor="middle" font-size="9" fill="rgba(255,255,255,0.5)">Vijapur Rd</text>
+      <circle cx="405" cy="125" r="8" fill="rgba(255,59,59,0.8)" stroke="#FF3B3B" stroke-width="1.5" id="leakPin-z3" style="display:none"/>
+      <circle cx="405" cy="125" r="8" fill="none" stroke="#FF3B3B" stroke-width="1.5" class="leak-pulse" id="leakPulse-z3" style="display:none"/>
+      <!-- Compass -->
+      <circle cx="748" cy="52" r="22" fill="rgba(10,15,30,0.8)" stroke="rgba(30,45,74,0.8)" stroke-width="1"/>
+      <text x="748" y="38" text-anchor="middle" font-size="10" fill="white" font-weight="bold">N</text>
+      <line x1="748" y1="42" x2="748" y2="52" stroke="white" stroke-width="1.5"/>
+    </svg>
+
+    <div class="map-overlay-title">
+      <h2>🗺 GIS Pressure Heatmap</h2>
+      <p>Solapur Municipal Corporation · 3 Live Zones</p>
+    </div>
+    <div class="map-legend">
+      <h3>Pressure Legend</h3>
+      <div class="legend-row"><div class="legend-circle" style="background:#FF3B3B"></div><span>Critical (&lt;1.0 bar)</span></div>
+      <div class="legend-row"><div class="legend-circle" style="background:#FFD600"></div><span>Warning (1.0–2.0)</span></div>
+      <div class="legend-row"><div class="legend-circle" style="background:#00FF88"></div><span>Normal (2.0–4.0)</span></div>
+      <div class="legend-row"><div class="legend-circle" style="background:#FF3B3B"></div><span>⚡ Leak</span></div>
+    </div>
+    <div class="map-info">
+      <h3>Live Summary</h3>
+      <div class="info-row"><span>Total Zones</span><span style="color:var(--accent)">3</span></div>
+      <div class="info-row"><span>Avg Pressure</span><span style="color:var(--yellow)" id="avgPressure">3.0 bar</span></div>
+      <div class="info-row"><span>Active Leaks</span><span id="leakStatus" style="color:var(--green)">None</span></div>
+      <div class="info-row"><span>Pump Station</span><span style="color:var(--accent)">1 Active</span></div>
+      <div style="margin-top:6px;padding-top:6px;border-top:1px solid var(--border);font-size:9px;color:var(--muted)" id="mlMapNote">🤖 ML: Collecting...</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const ESP32_IP = null;
+let usingRealHardware = false;
+let time = 0;
+let pressureHistory = { z1:[], z2:[], z3:[] };
+let alertLog = [];
+let prevStatuses = { z1:"normal", z2:"normal", z3:"normal" };
+let prevLeaks    = { z1:false,   z2:false,   z3:false };
+let lastComplaintCount = 0;
+
+function simulateData() {
+  time += 0.05;
+  let p1 = 3.2 + Math.sin(time*0.8)*0.6 + (Math.random()-0.5)*0.2;
+  let p2 = 2.8 + Math.sin(time*0.6+1)*0.8 + (Math.random()-0.5)*0.2;
+  let p3 = 3.1 + Math.sin(time*0.4+2)*0.5 + (Math.random()-0.5)*0.2;
+  p1 = Math.max(0.3, Math.min(4.5, p1));
+  p2 = Math.max(0.3, Math.min(4.5, p2));
+  p3 = Math.max(0.3, Math.min(4.5, p3));
+  let leak1 = Math.sin(time*0.1) < -0.95;
+  if (leak1) p1 = 0.4 + Math.random()*0.3;
+  return { zones: [
+    { id:"z1", name:"Hotgi Road",    pressure:p1, leak:leak1 },
+    { id:"z2", name:"Akkalkot Road", pressure:p2, leak:false },
+    { id:"z3", name:"Vijapur Road",  pressure:p3, leak:false },
+  ]};
+}
+
+async function getData() {
+  if (ESP32_IP) {
+    try {
+      const res = await fetch(`http://${ESP32_IP}/data`, { signal:AbortSignal.timeout(2000) });
+      const data = await res.json();
+      if (!usingRealHardware) {
+        usingRealHardware = true;
+        document.getElementById("dataSourceLabel").textContent = "LIVE ESP32 DATA";
+        document.getElementById("connDot").style.background = "#00FF88";
+        document.getElementById("connText").textContent = "ESP32 Connected ✅";
+        document.getElementById("connNote").textContent = `IP: ${ESP32_IP}`;
+      }
+      return data;
+    } catch(e) {
+      document.getElementById("connDot").style.background = "#FF3B3B";
+      document.getElementById("connText").textContent = "ESP32 Not Found";
+    }
+  }
+  return simulateData();
+}
+
+function getStatus(p) { return p<1.0?"critical":p<2.0?"warning":"normal"; }
+function getColor(s)  { return s==="critical"?"#FF3B3B":s==="warning"?"#FFD600":"#00FF88"; }
+
+function mlPredict(hist) {
+  if (hist.length < 8) return null;
+  const last = hist.slice(-8);
+  const avg = last.reduce((a,b)=>a+b,0)/last.length;
+  const trend = last[last.length-1]-last[0];
+  return { predicted:Math.max(0.1,avg+trend*1.5).toFixed(2), direction:trend<-0.2?"dropping":trend>0.2?"rising":"stable" };
+}
+
+function addAlert(message, type, zone) {
+  const icons  = {critical:"🚨",warning:"⚠️",normal:"✅",leak:"💧",complaint:"📝",announce:"📢",schedule:"🗓"};
+  const colors = {critical:"rgba(255,59,59,0.3)",warning:"rgba(255,214,0,0.3)",normal:"rgba(0,255,136,0.2)",leak:"rgba(255,59,59,0.4)",complaint:"rgba(0,212,255,0.3)",announce:"rgba(0,212,255,0.3)",schedule:"rgba(0,212,255,0.3)"};
+  alertLog.unshift({message,type,zone,time:new Date().toLocaleTimeString()});
+  if (alertLog.length>6) alertLog.pop();
+  document.getElementById("alertsPanel").innerHTML = alertLog.map(a=>`
+    <div class="alert-item" style="border-color:${colors[a.type]||colors.normal}">
+      <div class="alert-icon">${icons[a.type]||"ℹ️"}</div>
+      <div class="alert-text"><strong>${a.message}</strong><div class="alert-time">${a.zone} · ${a.time}</div></div>
+    </div>`).join("");
+}
+
+function updateDashboard(data) {
+  let critical=0,warning=0,normal=0,leaks=0,total=0,anyLeak=false;
+  data.zones.forEach(zone => {
+    const status=getStatus(zone.pressure), color=getColor(status), id=zone.id;
+    document.getElementById(`card-${id}`).className=`zone-card ${status}`;
+    const badge=document.getElementById(`badge-${id}`);
+    badge.className=`status-badge ${status}`;
+    badge.textContent=status.charAt(0).toUpperCase()+status.slice(1);
+    const pVal=document.getElementById(`pressure-${id}`);
+    pVal.className=`pressure-val ${status}`;
+    pVal.textContent=zone.pressure.toFixed(1);
+    const bar=document.getElementById(`bar-${id}`);
+    bar.style.width=Math.min(95,(zone.pressure/5)*100)+"%";
+    bar.style.background=color;
+    document.getElementById(`meta-${id}`).textContent=zone.leak?"⚠ Leak!":status==="critical"?"Below min":status==="warning"?"Below threshold":"Optimal";
+    document.getElementById(`flow-${id}`).textContent=`${Math.round(zone.pressure*16)} L/min`;
+    document.getElementById(`mapPressure-${id}`).textContent=zone.pressure.toFixed(1)+" bar";
+    document.getElementById(`mapPressure-${id}`).style.fill=color;
+    document.getElementById(`circle-${id}`).setAttribute("stroke",color);
+    document.getElementById(`heatStop-${id}`).setAttribute("stop-color",color);
+    document.getElementById(`leakPin-${id}`).style.display=zone.leak?"block":"none";
+    document.getElementById(`leakPulse-${id}`).style.display=zone.leak?"block":"none";
+    if(zone.leak){leaks++;anyLeak=true;}
+    if(status==="critical")critical++;
+    else if(status==="warning")warning++;
+    else normal++;
+    total+=zone.pressure;
+    pressureHistory[id].push(zone.pressure);
+    if(pressureHistory[id].length>20)pressureHistory[id].shift();
+    if(status!==prevStatuses[id]){
+      if(status==="critical")addAlert("Critical pressure!","critical",zone.name);
+      else if(status==="warning")addAlert("Low pressure warning","warning",zone.name);
+      else addAlert("Pressure normalized","normal",zone.name);
+      prevStatuses[id]=status;
+    }
+    if(zone.leak&&!prevLeaks[id]){addAlert("LEAK DETECTED!","leak",zone.name);prevLeaks[id]=true;}
+    else if(!zone.leak){prevLeaks[id]=false;}
+  });
+  document.getElementById("criticalCount").textContent=critical;
+  document.getElementById("warningCount").textContent=warning;
+  document.getElementById("normalCount").textContent=normal;
+  document.getElementById("leakCount").textContent=leaks;
+  document.getElementById("avgPressure").textContent=(total/3).toFixed(1)+" bar";
+  document.getElementById("leakStatus").textContent=anyLeak?"⚠ LEAK!":"None";
+  document.getElementById("leakStatus").style.color=anyLeak?"#FF3B3B":"#00FF88";
+  anyLeak?document.getElementById("leakBanner").classList.add("show"):document.getElementById("leakBanner").classList.remove("show");
+  const pred=mlPredict(pressureHistory["z1"]);
+  if(pred){
+    const alert=parseFloat(pred.predicted)<1.0?"🚨 CRITICAL!":parseFloat(pred.predicted)<2.0?"⚠ Warning":"✅ Normal";
+    document.getElementById("mlPrediction").innerHTML=`<b>Zone 1</b><br>Predicted: <span>${pred.predicted} bar</span><br>Trend: <span>${pred.direction}</span><br>${alert}`;
+    document.getElementById("mlMapNote").textContent=`🤖 Zone 1 → ${pred.predicted} bar (${pred.direction})`;
+  }
+}
+
+// ML server
+setInterval(async()=>{
+  try{
+    const res=await fetch('http://localhost:5001/predict');
+    const data=await res.json();
+    const p=data.predictions;
+    if(p&&p.z1){
+      document.getElementById("mlPrediction").innerHTML=`<b>Zone 1 — ${p.z1.name}</b><br>Current: <span>${p.z1.current} bar</span><br>Predicted: <span>${p.z1.predicted} bar</span><br>Trend: <span>${p.z1.direction}</span><br>${p.z1.alert?"🚨 CRITICAL!":p.z1.warning?"⚠ Warning":"✅ Normal"}`;
+      document.getElementById("mlMapNote").textContent=`🤖 Zone 1 → ${p.z1.predicted} bar (${p.z1.direction})`;
+    }
+  }catch(e){}
+},2000);
+
+// ============================================================
+// COMPLAINTS
+// ============================================================
+async function fetchComplaints() {
+  try {
+    const res=await fetch('http://localhost:5001/complaints');
+    const data=await res.json();
+    document.getElementById('complaintTotal').textContent=data.total;
+    document.getElementById('complaintPending').textContent=data.pending;
+    document.getElementById('complaintResolved').textContent=data.resolved;
+    if(data.total>lastComplaintCount&&lastComplaintCount>0) addAlert("New citizen complaint!","complaint","Citizen Portal");
+    lastComplaintCount=data.total;
+    const typeLabels={no_water:"No Water",low_pressure:"Low Pressure",dirty_water:"Dirty Water",leakage:"Leakage",irregular:"Irregular",other:"Other"};
+    const wardLabels={w1:"Hotgi Road",w2:"Akkalkot Road",w3:"Vijapur Road",w4:"Central",w5:"Bazar",w6:"Kegaon",w7:"Mangalwar",w8:"Siddheshwar"};
+    const panel=document.getElementById('complaintsPanel');
+    if(data.complaints.length===0){panel.innerHTML=`<div style="text-align:center;color:var(--muted);padding:12px;font-size:10px">✅ No complaints</div>`;return;}
+    panel.innerHTML=data.complaints.slice().reverse().map(c=>`
+      <div class="complaint-card ${c.status}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:4px">
+          <div><span style="font-size:10px;font-weight:700;color:white">#${c.id} · ${c.name}</span><br><span style="font-size:9px;color:var(--muted)">📍 ${wardLabels[c.ward]||c.ward}</span></div>
+          <span style="font-size:8px;font-weight:700;padding:2px 6px;border-radius:8px;background:${c.status==='resolved'?'rgba(0,255,136,0.1)':'rgba(255,214,0,0.1)'};color:${c.status==='resolved'?'#00FF88':'#FFD600'};border:1px solid ${c.status==='resolved'?'rgba(0,255,136,0.3)':'rgba(255,214,0,0.3)'}">${c.status==='resolved'?'✅':'⏳'} ${c.status}</span>
+        </div>
+        <div style="font-size:10px;color:var(--accent);margin-bottom:2px">🔧 ${typeLabels[c.type]||c.type}</div>
+        <div style="font-size:9px;color:var(--muted);margin-bottom:4px">${c.description||''}</div>
+        <div style="display:flex;justify-content:space-between;align-items:center">
+          <span style="font-size:9px;color:var(--muted)">📞 ${c.mobile}</span>
+          ${c.status==='pending'?`<button class="resolve-btn" onclick="resolveComplaint(${c.id})">✅ Resolve</button>`:`<span style="font-size:9px;color:var(--muted)">${c.resolved_at||''}</span>`}
+        </div>
+      </div>`).join('');
+  }catch(e){document.getElementById('complaintsPanel').innerHTML=`<div style="text-align:center;color:var(--muted);padding:12px;font-size:10px">Flask not running</div>`;}
+}
+
+async function resolveComplaint(id) {
+  try{await fetch(`http://localhost:5001/complaint/${id}/resolve`,{method:'POST'});fetchComplaints();}catch(e){}
+}
+
+// ============================================================
+// ANNOUNCEMENTS
+// ============================================================
+async function postAnnouncement() {
+  const title=document.getElementById('annTitle').value.trim();
+  const body=document.getElementById('annBody').value.trim();
+  const type=document.getElementById('annType').value;
+  if(!title||!body){alert('Please fill title and message!');return;}
+  try{
+    const res=await fetch('http://localhost:5001/announcement',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({title,body,type,posted_by:'SMC Engineer'})
+    });
+    const data=await res.json();
+    if(data.status==='success'){
+      document.getElementById('annTitle').value='';
+      document.getElementById('annBody').value='';
+      document.getElementById('annSuccess').classList.add('show');
+      setTimeout(()=>document.getElementById('annSuccess').classList.remove('show'),4000);
+      addAlert(`Announcement posted: ${title}`,"announce","SMC Admin");
+      fetchAnnouncements();
+    }
+  }catch(e){alert('Flask not running!');}
+}
+
+async function deleteAnnouncement(id) {
+  try{
+    await fetch(`http://localhost:5001/announcement/${id}`,{method:'DELETE'});
+    fetchAnnouncements();
+  }catch(e){}
+}
+
+async function fetchAnnouncements() {
+  try{
+    const res=await fetch('http://localhost:5001/announcements');
+    const data=await res.json();
+    const list=document.getElementById('annList');
+    if(data.announcements.length===0){
+      list.innerHTML=`<div style="text-align:center;color:var(--muted);font-size:10px;padding:8px">No announcements yet</div>`;
+      return;
+    }
+    const typeColors={info:'var(--accent)',warning:'var(--yellow)',urgent:'var(--red)'};
+    list.innerHTML=data.announcements.map(a=>`
+      <div class="ann-card ${a.type}">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div style="font-size:10px;font-weight:700;color:white;margin-bottom:2px">${a.title}</div>
+          <button class="del-btn" onclick="deleteAnnouncement(${a.id})">🗑</button>
+        </div>
+        <div style="font-size:9px;color:var(--muted);margin-bottom:2px">${a.body}</div>
+        <div style="font-size:9px;color:var(--muted)">🕐 ${a.timestamp}</div>
+      </div>`).join('');
+  }catch(e){}
+}
+
+// ============================================================
+// SCHEDULE UPDATE
+// ============================================================
+async function updateSchedule() {
+  const ward=document.getElementById('schedWard').value;
+  const dayIndex=parseInt(document.getElementById('schedDay').value);
+  const time=document.getElementById('schedTime').value.trim();
+  const status=document.getElementById('schedStatus').value;
+  if(!ward||!time){alert('Please select ward and enter time!');return;}
+  try{
+    const res=await fetch('http://localhost:5001/schedule',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({ward,day_index:dayIndex,time,status})
+    });
+    const data=await res.json();
+    if(data.status==='success'){
+      document.getElementById('schedSuccess').classList.add('show');
+      setTimeout(()=>document.getElementById('schedSuccess').classList.remove('show'),4000);
+      addAlert(`Schedule updated for Ward ${ward}`,"schedule","SMC Admin");
+    }
+  }catch(e){alert('Flask not running!');}
+}
+
+// Clock
+setInterval(()=>{
+  document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-IN',{hour:'2-digit',minute:'2-digit',second:'2-digit'});
+},1000);
+
+// Main loops
+setInterval(async()=>{updateDashboard(await getData());},1000);
+fetchComplaints();
+setInterval(fetchComplaints,5000);
+// Anomaly Detection loop
+async function fetchAnomalies() {
+  try {
+    const res = await fetch('http://localhost:5001/anomaly_status');
+    const data = await res.json();
+    const panel = document.getElementById('anomalyPanel');
+
+    if (data.anomalies.length === 0) {
+      panel.innerHTML = `
+        <div style="display:flex;align-items:center;gap:8px;padding:4px">
+          <div style="width:8px;height:8px;background:#00FF88;border-radius:50%"></div>
+          <span style="color:#00FF88;font-size:10px;font-weight:600">All zones normal</span>
+        </div>
+        <div style="font-size:9px;color:var(--muted);margin-top:4px">
+          Isolation Forest: No anomalies detected
+        </div>`;
+    } else {
+      panel.innerHTML = data.anomalies.map(a => `
+        <div style="
+          background:rgba(255,59,59,0.08);
+          border:1px solid rgba(255,59,59,0.3);
+          border-radius:6px;padding:8px;margin-bottom:5px;
+        ">
+          <div style="font-size:10px;font-weight:700;color:var(--red);margin-bottom:3px">
+            🚨 ${a.zone}
+          </div>
+          <div style="font-size:10px;color:white;margin-bottom:3px">${a.message}</div>
+          <div style="display:flex;justify-content:space-between">
+            <span style="font-size:9px;color:var(--muted)">${a.type.replace(/_/g,' ').toUpperCase()}</span>
+            <span style="font-size:9px;color:var(--yellow)">Confidence: ${a.confidence}%</span>
+          </div>
+        </div>`).join('');
+      // Also trigger alert
+      data.anomalies.forEach(a => addAlert(a.message, "critical", a.zone));
+    }
+  } catch(e) {}
+}
+
+fetchAnomalies();
+setInterval(fetchAnomalies, 3000);
+fetchAnnouncements();
+setInterval(fetchAnnouncements,10000);
+updateDashboard(simulateData());
+</script>
+</body>
+</html>
