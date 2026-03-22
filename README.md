@@ -98,6 +98,9 @@ AQUASYNC/
 ├── dashboard/                      # 🖥️ Admin dashboard
 │   └── index.html                  #    Real-time monitoring & management
 │
+├──firmware/
+│   └── esp32_aquasync.ino
+│        └──esp32_aquasync.ino      # if used hardware
 ├── ml/                             # 🧠 ML backend (Flask)
 │   ├── predict.py                  #    Flask app — ML models & API routes
 │   ├── complaints.json             #    Persistent complaints store
@@ -258,11 +261,6 @@ Contributions are welcome! To contribute:
 
 Please make sure your changes are well-tested and documented before submitting a PR.
 
----
-
-## 📄 License
-
-This project is licensed under the **MIT License** — see the [LICENSE](LICENSE) file for details.
 
 ---
 
