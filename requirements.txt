@@ -1,4 +1,7 @@
+# Web framework & API
 flask>=2.0.0
 flask-cors>=3.0.0
+
+# Data processing & Machine Learning
 numpy>=1.21.0
 scikit-learn>=1.0.0
