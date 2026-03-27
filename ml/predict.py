@@ -39,26 +39,25 @@ DEFAULT_SCHEDULE = {
 # ============================================================
 # ML MODELS
 # ============================================================
-pressure_history = { "z1": [], "z2": [], "z3": [] }
+flow_history = { "z1": [], "z2": [] }
 isolation_models = {}  # one model per zone
 t = 0
 
-ZONE_NAMES = {"z1":"Hotgi Road", "z2":"Akkalkot Road", "z3":"Vijapur Road"}
+ZONE_NAMES = {"z1":"Hotgi Road", "z2":"Akkalkot Road"}
 
 def simulate_reading():
     global t
     t += 0.05
-    p1 = 3.2 + np.sin(t * 0.8) * 0.6 + random.uniform(-0.1, 0.1)
-    p2 = 2.8 + np.sin(t * 0.6 + 1) * 0.8 + random.uniform(-0.1, 0.1)
-    p3 = 3.1 + np.sin(t * 0.4 + 2) * 0.5 + random.uniform(-0.1, 0.1)
+    # Simulate realistic flow rates in L/min (YF-S201 range ~2–30 L/min)
+    f1 = 18.0 + np.sin(t * 0.8) * 5.0 + random.uniform(-0.5, 0.5)
+    f2 = 15.0 + np.sin(t * 0.6 + 1) * 4.0 + random.uniform(-0.5, 0.5)
     return {
-        "z1": round(max(0.3, min(4.5, p1)), 2),
-        "z2": round(max(0.3, min(4.5, p2)), 2),
-        "z3": round(max(0.3, min(4.5, p3)), 2)
+        "z1": round(max(1.0, min(30.0, f1)), 2),
+        "z2": round(max(1.0, min(30.0, f2)), 2)
     }
 
 def linear_predict(zone_history):
-    """Linear Regression — predicts future pressure trend"""
+    """Linear Regression — predicts future flow rate trend"""
     if len(zone_history) < 5:
         return None
     X = np.array(range(len(zone_history))).reshape(-1, 1)
@@ -75,9 +74,9 @@ def linear_predict(zone_history):
 
 def isolation_detect(zone, zone_history):
     """
-    Isolation Forest — detects anomalies in pressure readings.
+    Isolation Forest — detects anomalies in flow rate readings.
     Anomalies indicate: leaks, pipe bursts, unauthorized tapping,
-    sudden pressure surges, or sensor failures.
+    sudden flow surges, or sensor failures.
     """
     if len(zone_history) < 15:
         return {
@@ -106,30 +105,30 @@ def isolation_detect(zone, zone_history):
 
     is_anomaly = prediction == -1
 
-    # Determine anomaly type based on pressure behavior
+    # Determine anomaly type based on flow rate behavior
     current = zone_history[-1]
     avg = np.mean(zone_history[-10:])
     drop_rate = zone_history[-1] - zone_history[-5] if len(zone_history) >= 5 else 0
 
     anomaly_type = "normal"
-    message = "Pressure within normal operating range"
+    message = "Flow rate within normal operating range"
 
     if is_anomaly:
-        if drop_rate < -0.8:
+        if drop_rate < -5.0:
             anomaly_type = "sudden_drop"
-            message = "⚠ SUDDEN PRESSURE DROP — Possible pipe burst or leak!"
-        elif drop_rate < -0.4:
+            message = "⚠ SUDDEN FLOW DROP — Possible pipe burst or leak!"
+        elif drop_rate < -2.0:
             anomaly_type = "gradual_drop"
-            message = "⚠ Gradual pressure decline — Possible blockage or leak"
-        elif current > avg + 1.0:
-            anomaly_type = "pressure_surge"
-            message = "⚠ PRESSURE SURGE — Check valve settings"
-        elif current < 0.8:
+            message = "⚠ Gradual flow decline — Possible blockage or leak"
+        elif current > avg + 5.0:
+            anomaly_type = "flow_surge"
+            message = "⚠ FLOW SURGE — Check valve settings"
+        elif current < 3.0:
             anomaly_type = "critical_low"
-            message = "🚨 CRITICAL LOW PRESSURE — Immediate action required"
+            message = "🚨 CRITICAL LOW FLOW — Immediate action required"
         else:
             anomaly_type = "irregular"
-            message = "⚠ Irregular pressure pattern detected"
+            message = "⚠ Irregular flow pattern detected"
 
     confidence = min(100, int(abs(score) * 100))
 
@@ -150,17 +149,17 @@ def get_prediction():
     readings = simulate_reading()
 
     results = {}
-    for zone in ["z1", "z2", "z3"]:
+    for zone in ["z1", "z2"]:
         # Add to history
-        pressure_history[zone].append(readings[zone])
-        if len(pressure_history[zone]) > 50:
-            pressure_history[zone].pop(0)
+        flow_history[zone].append(readings[zone])
+        if len(flow_history[zone]) > 50:
+            flow_history[zone].pop(0)
 
         # Linear Regression prediction
-        lr = linear_predict(pressure_history[zone])
+        lr = linear_predict(flow_history[zone])
 
         # Isolation Forest anomaly detection
-        iso = isolation_detect(zone, pressure_history[zone])
+        iso = isolation_detect(zone, flow_history[zone])
 
         result = {
             "current": readings[zone],
@@ -171,8 +170,8 @@ def get_prediction():
             result["predicted"]  = lr["predicted"]
             result["trend"]      = lr["trend"]
             result["direction"]  = lr["direction"]
-            result["alert"]      = lr["predicted"] < 1.0
-            result["warning"]    = lr["predicted"] < 2.0
+            result["alert"]      = lr["predicted"] < 5.0
+            result["warning"]    = lr["predicted"] < 10.0
 
         result["anomaly"]        = iso
         results[zone] = result
@@ -188,7 +187,7 @@ def get_prediction():
 def anomaly_status():
     """Quick endpoint for dashboard anomaly widget"""
     anomalies = []
-    for zone, hist in pressure_history.items():
+    for zone, hist in flow_history.items():
         if len(hist) >= 15:
             iso = isolation_detect(zone, hist)
             if iso["is_anomaly"]:
@@ -318,7 +317,7 @@ def health():
     return jsonify({
         "status": "ok",
         "models": "LinearRegression + IsolationForest",
-        "zones_tracked": len([z for z in pressure_history if len(pressure_history[z]) > 0])
+        "zones_tracked": len([z for z in flow_history if len(flow_history[z]) > 0])
     })
 
 if __name__ == '__main__':

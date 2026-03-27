@@ -10,10 +10,11 @@ const char* password = "YOUR_PASSWORD";
 
 // ============================================================
 // PIN DEFINITIONS
+// Flow sensors (YF-S201) output pulse signals — use interrupt-
+// capable digital GPIO pins on ESP WROOM-32.
 // ============================================================
-#define SENSOR_1  34   // Zone 1 - Hotgi Road
-#define SENSOR_2  35   // Zone 2 - Akkalkot Road
-#define SENSOR_3  32   // Zone 3 - Vijapur Road
+#define FLOW_SENSOR_1  18   // Zone 1 - Hotgi Road
+#define FLOW_SENSOR_2  19   // Zone 2 - Akkalkot Road
 
 #define LED_RED    25
 #define LED_YELLOW 26
@@ -21,51 +22,78 @@ const char* password = "YOUR_PASSWORD";
 #define BUZZER     14
 
 // ============================================================
+// FLOW SENSOR CALIBRATION
+// YF-S201: 7.5 pulses per second per L/min
+// If you have a different sensor, adjust FLOW_CALIBRATION_FACTOR.
+// ============================================================
+#define FLOW_CALIBRATION_FACTOR  7.5f   // pulses/sec per L/min (YF-S201)
+
+// Flow measurement window in milliseconds
+#define FLOW_SAMPLE_MS  1000UL
+
+// ============================================================
 // ZONE NAMES
 // ============================================================
 const char* zoneNames[] = {
   "Hotgi Road",
-  "Akkalkot Road",
-  "Vijapur Road"
+  "Akkalkot Road"
 };
 
 WebServer server(80);
 
-float prevPressures[3] = {0, 0, 0};
-bool leakDetected[3]   = {false, false, false};
+// Pulse counters — updated by interrupts
+volatile unsigned long pulseCount1 = 0;
+volatile unsigned long pulseCount2 = 0;
+
+// Calculated flow rates updated in loop() — read by handleData()
+float currentFlowRates[2] = {0.0f, 0.0f};
+unsigned long lastSampleMs = 0;
+
+float prevFlowRates[2] = {0.0f, 0.0f};
+bool  leakDetected[2]  = {false, false};
+
+void IRAM_ATTR onPulse1() { pulseCount1++; }
+void IRAM_ATTR onPulse2() { pulseCount2++; }
 
 // ============================================================
-// CONVERT RAW SENSOR VALUE TO BAR
+// UPDATE FLOW RATES — called from loop() every FLOW_SAMPLE_MS.
+// Snapshot and reset pulse counters atomically to avoid races.
 // ============================================================
-float readPressure(int pin) {
-  int raw = analogRead(pin);
-  float voltage  = raw * (3.3 / 4095.0);  // ESP32 12-bit ADC
-  float pressure = voltage * 1.5;          // calibrate for your sensor
-  return max(0.0f, min(5.0f, pressure));   // clamp 0-5 bar
+void updateFlowRates() {
+  noInterrupts();
+  unsigned long c1 = pulseCount1;
+  unsigned long c2 = pulseCount2;
+  pulseCount1 = 0;
+  pulseCount2 = 0;
+  interrupts();
+
+  float elapsed = (float)FLOW_SAMPLE_MS / 1000.0f;  // seconds
+  currentFlowRates[0] = max(0.0f, min(60.0f, (c1 / elapsed) / FLOW_CALIBRATION_FACTOR));
+  currentFlowRates[1] = max(0.0f, min(60.0f, (c2 / elapsed) / FLOW_CALIBRATION_FACTOR));
 }
 
 // ============================================================
 // GET STATUS STRING
 // ============================================================
-const char* getStatus(float pressure) {
-  if (pressure < 1.0) return "critical";
-  if (pressure < 2.0) return "warning";
+const char* getStatus(float flowRate) {
+  if (flowRate < 5.0)  return "critical";
+  if (flowRate < 10.0) return "warning";
   return "normal";
 }
 
 // ============================================================
-// LEAK DETECTION
+// LEAK DETECTION — sudden drop of >5 L/min between readings
 // ============================================================
 bool detectLeak(float current, float previous) {
-  return (previous - current) > 0.8;  // sudden drop = leak
+  return (previous > 5.0f) && (previous - current) > 5.0f;
 }
 
 // ============================================================
 // UPDATE LEDS AND BUZZER
 // ============================================================
-void updateIndicators(float p1, float p2, float p3, bool anyLeak) {
-  bool anyCritical = (p1 < 1.0 || p2 < 1.0 || p3 < 1.0);
-  bool anyWarning  = (p1 < 2.0 || p2 < 2.0 || p3 < 2.0);
+void updateIndicators(float f1, float f2, bool anyLeak) {
+  bool anyCritical = (f1 < 5.0 || f2 < 5.0);
+  bool anyWarning  = (f1 < 10.0 || f2 < 10.0);
 
   digitalWrite(LED_RED,    LOW);
   digitalWrite(LED_YELLOW, LOW);
@@ -89,39 +117,35 @@ void handleData() {
   // CORS header so dashboard can fetch
   server.sendHeader("Access-Control-Allow-Origin", "*");
 
-  float pressures[3];
-  pressures[0] = readPressure(SENSOR_1);
-  pressures[1] = readPressure(SENSOR_2);
-  pressures[2] = readPressure(SENSOR_3);
+  float flowRates[2];
+  flowRates[0] = currentFlowRates[0];
+  flowRates[1] = currentFlowRates[1];
 
   bool anyLeak = false;
 
   // Check for leaks
-  for (int i = 0; i < 3; i++) {
-    leakDetected[i] = detectLeak(pressures[i], prevPressures[i]);
+  for (int i = 0; i < 2; i++) {
+    leakDetected[i] = detectLeak(flowRates[i], prevFlowRates[i]);
     if (leakDetected[i]) anyLeak = true;
-    prevPressures[i] = pressures[i];
+    prevFlowRates[i] = flowRates[i];
   }
 
   // Update LEDs and buzzer
-  updateIndicators(
-    pressures[0], pressures[1], pressures[2], anyLeak
-  );
+  updateIndicators(flowRates[0], flowRates[1], anyLeak);
 
   // Build JSON response
   StaticJsonDocument<512> doc;
   JsonArray zones = doc.createNestedArray("zones");
 
-  String zoneIds[] = {"z1", "z2", "z3"};
+  String zoneIds[] = {"z1", "z2"};
 
-  for (int i = 0; i < 3; i++) {
+  for (int i = 0; i < 2; i++) {
     JsonObject zone = zones.createNestedObject();
-    zone["id"]       = zoneIds[i];
-    zone["name"]     = zoneNames[i];
-    zone["pressure"] = round(pressures[i] * 100) / 100.0;
-    zone["status"]   = getStatus(pressures[i]);
-    zone["leak"]     = leakDetected[i];
-    zone["flow"]     = round(pressures[i] * 16);
+    zone["id"]        = zoneIds[i];
+    zone["name"]      = zoneNames[i];
+    zone["flow_rate"] = round(flowRates[i] * 10) / 10.0;
+    zone["status"]    = getStatus(flowRates[i]);
+    zone["leak"]      = leakDetected[i];
   }
 
   doc["leak_detected"] = anyLeak;
@@ -147,11 +171,17 @@ void setup() {
   Serial.begin(115200);
   Serial.println("\n=== AquaSync ESP32 Starting ===");
 
-  // Pin modes
+  // Output pins
   pinMode(LED_RED,    OUTPUT);
   pinMode(LED_YELLOW, OUTPUT);
   pinMode(LED_GREEN,  OUTPUT);
   pinMode(BUZZER,     OUTPUT);
+
+  // Flow sensor interrupt pins (INPUT_PULLUP works with YF-S201)
+  pinMode(FLOW_SENSOR_1, INPUT_PULLUP);
+  pinMode(FLOW_SENSOR_2, INPUT_PULLUP);
+  attachInterrupt(digitalPinToInterrupt(FLOW_SENSOR_1), onPulse1, RISING);
+  attachInterrupt(digitalPinToInterrupt(FLOW_SENSOR_2), onPulse2, RISING);
 
   // All off initially
   digitalWrite(LED_RED,    LOW);
@@ -196,5 +226,11 @@ void setup() {
 // ============================================================
 void loop() {
   server.handleClient();
-  delay(100);
+
+  // Update flow rates once per FLOW_SAMPLE_MS without blocking
+  unsigned long now = millis();
+  if (now - lastSampleMs >= FLOW_SAMPLE_MS) {
+    lastSampleMs = now;
+    updateFlowRates();
+  }
 }
